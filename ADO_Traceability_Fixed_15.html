@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADO Traceability Matrix · Automation Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Cabinet+Grotesk:wght@400;500;700;800&family=Bricolage+Grotesque:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══ TOKENS ═══ */
+:root{
+  --bg:#05080f;
+  --p0:#080d18;--p1:#0d1525;--p2:#121e35;--p3:#172444;--p4:#1d2d55;
+  --w1:rgba(255,255,255,.04);--w2:rgba(255,255,255,.08);--w3:rgba(255,255,255,.13);--w4:rgba(255,255,255,.2);
+  --tx:#cdd6f0;--tx2:#7a8db5;--tx3:#3d4f72;
+  --a:#00b4ff;--ag:rgba(0,180,255,.1);--ab:rgba(0,180,255,.2);
+  --g:#00e5a0;--gg:rgba(0,229,160,.08);--gb:rgba(0,229,160,.2);
+  --r:#ff4b6e;--rg:rgba(255,75,110,.08);--rb:rgba(255,75,110,.2);
+  --o:#ff9f43;--og:rgba(255,159,67,.08);--ob:rgba(255,159,67,.2);
+  --v:#b48eff;--vg:rgba(180,142,255,.08);--vb:rgba(180,142,255,.2);
+  --s:#60c8ff;--sg:rgba(96,200,255,.08);--sb:rgba(96,200,255,.2);
+  --mono:'JetBrains Mono',monospace;
+  --head:'Cabinet Grotesk',sans-serif;
+  --body:'Bricolage Grotesque',sans-serif;
+  --lw:290px;
+  --r4:4px;--r6:6px;--r8:8px;--r12:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--body);background:var(--bg);color:var(--tx);display:flex;flex-direction:column}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(circle,rgba(0,180,255,.05) 1px,transparent 1px);
+  background-size:30px 30px;
+}
+body::after{
+  content:'';position:fixed;z-index:0;pointer-events:none;width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,180,255,.06) 0%,transparent 70%);
+  top:-100px;left:120px;
+}
+
+/* ═══ TOPBAR ═══ */
+.topbar{
+  position:relative;z-index:20;height:50px;flex-shrink:0;
+  background:var(--p0);border-bottom:1px solid var(--w2);
+  display:flex;align-items:center;padding:0 20px;gap:16px;
+}
+.tb-logo{
+  width:26px;height:26px;border-radius:6px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--a),#0044aa);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:10px;font-weight:600;color:#fff;
+}
+.tb-name{font-family:var(--head);font-size:14px;font-weight:700;color:var(--tx);letter-spacing:-.01em;white-space:nowrap}
+.tb-name span{color:var(--a)}
+.tb-sep{width:1px;height:18px;background:var(--w2);flex-shrink:0}
+.tb-sub{font-family:var(--mono);font-size:10px;color:var(--tx3);white-space:nowrap}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.conn-indicator{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--tx3)}
+.cled{width:7px;height:7px;border-radius:50%;background:var(--tx3);transition:all .4s;flex-shrink:0}
+.cled.ok{background:var(--g);box-shadow:0 0 8px rgba(0,229,160,.5)}
+.cled.busy{background:var(--o);animation:blink 1s infinite}
+.cled.err{background:var(--r)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.tb-badge{font-family:var(--mono);font-size:9px;letter-spacing:.04em;padding:3px 9px;border-radius:20px;border:1px solid;white-space:nowrap}
+.tb-badge.a{color:var(--a);border-color:var(--ab);background:var(--ag)}
+.tb-badge.g{color:var(--g);border-color:var(--gb);background:var(--gg)}
+
+/* ═══ ROOT LAYOUT: LEFT sidebar + RIGHT main column ═══ */
+.root-layout{
+  flex:1;display:flex;overflow:hidden;position:relative;z-index:1;min-height:0;
+}
+
+/* ═══ LEFT PANEL — ADO Config ═══ */
+.left-panel{
+  width:var(--lw);flex-shrink:0;
+  background:var(--p0);
+  border-right:1px solid var(--w2);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.lp-head{
+  padding:14px 16px 12px;border-bottom:1px solid var(--w2);flex-shrink:0;
+}
+.lp-step-lbl{
+  font-family:var(--mono);font-size:8px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--tx3);margin-bottom:5px;
+  display:flex;align-items:center;gap:7px;
+}
+.lp-step-lbl::after{content:'';flex:1;height:1px;background:var(--w2)}
+.lp-title{font-family:var(--head);font-size:15px;font-weight:700;color:var(--tx);letter-spacing:-.01em}
+.lp-sub{font-family:var(--mono);font-size:10px;color:#6a8ab5;margin-top:2px}
+.lp-body{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:11px}
+.fblock{display:flex;flex-direction:column;gap:4px}
+.flabel{
+  font-family:var(--body);font-size:11px;font-weight:600;letter-spacing:.01em;
+  text-transform:none;color:#c8d6f0;
+  display:flex;align-items:center;gap:5px;
+}
+.flabel .req{color:#ff7b7b;font-size:10px;font-weight:700}
+.flabel .hint{color:#7a9acc;font-size:10px;margin-left:auto;opacity:1;font-family:var(--mono);font-weight:400}
+.cascade-row{
+  display:flex;align-items:center;gap:5px;
+  font-family:var(--mono);font-size:9px;color:#5a7aaa;
+  padding:2px 0 2px 6px;opacity:1;
+}
+.cascade-row::before{content:'↳';color:var(--a);font-size:10px}
+.finput,.fselect{
+  width:100%;background:var(--p1);border:1px solid rgba(255,255,255,.14);
+  color:#e0eaff;font-family:var(--body);font-size:12px;
+  padding:8px 10px;border-radius:var(--r6);outline:none;
+  transition:border-color .2s,background .2s,box-shadow .2s;
+}
+.finput:focus,.fselect:focus{border-color:var(--a);background:var(--p2);box-shadow:0 0 0 3px rgba(0,180,255,.07)}
+.finput::placeholder{color:#4a6080}
+.finput.valid{border-color:rgba(0,229,160,.4)}
+.fselect{
+  appearance:none;cursor:pointer;padding-right:28px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath stroke='%233d4f72' stroke-width='1.5' stroke-linecap='round' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 9px center;
+}
+.fselect:disabled{opacity:.45;cursor:not-allowed;color:#6a85a8}
+.fselect option{background:#0d1525;color:#e0eaff}
+.pat-wrap{position:relative}
+.pat-wrap .finput{padding-right:34px}
+.pat-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--tx3);cursor:pointer;font-size:12px;padding:2px;transition:color .15s;line-height:1}
+.pat-eye:hover{color:var(--a)}
+.fsel-wrap{position:relative}
+.fspinner{position:absolute;right:26px;top:50%;transform:translateY(-50%);width:11px;height:11px;border:1.5px solid var(--a);border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;display:none}
+.fspinner.show{display:block}
+@keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
+.lp-footer{padding:12px 16px;border-top:1px solid var(--w2);flex-shrink:0;display:flex;flex-direction:column;gap:7px}
+.btn-test{
+  width:100%;padding:9px 12px;border-radius:var(--r6);
+  background:var(--p2);border:1px solid var(--w3);
+  color:var(--tx2);font-family:var(--mono);font-size:11px;font-weight:500;
+  cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+}
+.btn-test:hover:not(:disabled){border-color:var(--ab);color:var(--a);background:var(--ag);box-shadow:0 0 14px rgba(0,180,255,.1)}
+.btn-test:disabled{opacity:.35;cursor:not-allowed}
+.conn-box{
+  padding:8px 11px;border-radius:var(--r6);border:1px solid;
+  font-family:var(--mono);font-size:9px;line-height:1.7;display:none;
+  white-space:pre-wrap;word-break:break-word;
+}
+.conn-box.ok{background:var(--gg);border-color:var(--gb);color:var(--g)}
+.conn-box.err{background:var(--rg);border-color:var(--rb);color:var(--r)}
+.conn-box.busy{background:var(--ag);border-color:var(--ab);color:var(--a)}
+.conn-box.warn{background:var(--og);border-color:var(--ob);color:var(--o)}
+
+/* ── Connection progress bar ── */
+.conn-progress-wrap{
+  display:none;flex-direction:column;gap:5px;margin-top:2px;
+}
+.conn-progress-wrap.show{display:flex;}
+.conn-progress-track{
+  width:100%;height:4px;border-radius:2px;
+  background:rgba(255,255,255,.07);overflow:hidden;
+}
+.conn-progress-bar{
+  height:100%;width:0%;border-radius:2px;
+  background:linear-gradient(90deg,var(--a),var(--g));
+  transition:width .35s ease;
+  position:relative;
+}
+.conn-progress-bar::after{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
+  animation:shimmer 1.2s infinite;
+}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+.conn-progress-bar.done{animation:none;}
+.conn-progress-bar.done::after{display:none;}
+.conn-step-label{
+  font-family:var(--mono);font-size:9px;color:#6a9adf;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.conn-step-label span{color:#3a6aaf;font-size:8px;}
+
+/* ═══ RIGHT COLUMN — Filter Bar (top) + Dashboard (below) ═══ */
+.right-col{
+  flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;
+}
+
+/* ═══ HORIZONTAL FILTER BAR ═══ */
+.filter-bar{
+  flex-shrink:0;
+  background:var(--p1);
+  border-bottom:2px solid var(--w2);
+  position:relative;
+  overflow:hidden;
+}
+/* cyan left accent on filter bar */
+.filter-bar::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:linear-gradient(to bottom,transparent,var(--a) 40%,var(--g) 80%,transparent);
+}
+.fb-top{
+  padding:10px 20px 0 22px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.fb-top-label{
+  font-family:var(--mono);font-size:9px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--tx3);
+  display:flex;align-items:center;gap:8px;
+}
+.fb-top-label::before{content:'Step 2';color:var(--a);font-size:8px}
+.fb-top-label::after{content:'';width:20px;height:1px;background:var(--w3)}
+.fb-rel-card{
+  display:none;background:var(--p2);border:1px solid var(--ab);
+  border-radius:var(--r6);padding:4px 10px;
+  font-family:var(--mono);font-size:9px;color:var(--a);
+  display:flex;align-items:center;gap:8px;
+}
+.fb-rel-card.show{display:flex}
+.fb-rel-name{font-weight:500;color:var(--a)}
+.fb-rel-meta{color:var(--tx3);font-size:8px}
+
+/* The 4 filters in a horizontal row */
+.fb-filters{
+  display:flex;align-items:flex-end;gap:0;
+  padding:10px 20px 0 22px;
+  overflow-x:auto;
+}
+/* Each filter step */
+.fb-step{
+  display:flex;flex-direction:column;gap:0;
+  position:relative;min-width:0;
+}
+/* connector arrow between steps */
+.fb-step:not(:last-of-type)::after{
+  content:'›';
+  position:absolute;right:-14px;bottom:9px;
+  font-size:16px;color:var(--tx3);z-index:2;
+  transition:color .3s;
+  font-family:var(--head);
+}
+.fb-step.done:not(:last-of-type)::after{color:var(--g)}
+.fb-step.active:not(:last-of-type)::after{color:var(--a)}
+/* step header */
+.fb-step-hd{
+  display:flex;align-items:center;gap:6px;
+  margin-bottom:5px;padding:0 2px;
+}
+.fb-step-num{
+  width:18px;height:18px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:8px;font-weight:600;
+  border:1px solid var(--w2);color:var(--tx3);background:var(--p2);
+  transition:all .3s;
+}
+.fb-step.active .fb-step-num{border-color:var(--ab);color:var(--a);background:var(--ag)}
+.fb-step.done .fb-step-num{border-color:var(--gb);color:var(--g);background:var(--gg)}
+.fb-step-lbl{font-family:var(--mono);font-size:9px;color:var(--tx3);white-space:nowrap;letter-spacing:.04em}
+.fb-step.active .fb-step-lbl{color:var(--a)}
+.fb-step.done .fb-step-lbl{color:var(--g)}
+.fb-select-box{
+  width:200px;min-width:160px;
+  background:var(--p2);border:1px solid var(--w2);
+  color:var(--tx);font-family:var(--mono);font-size:11px;
+  padding:8px 28px 8px 10px;border-radius:var(--r6);outline:none;
+  appearance:none;cursor:pointer;
+  transition:border-color .2s,background .2s,box-shadow .2s;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath stroke='%233d4f72' stroke-width='1.5' stroke-linecap='round' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 9px center;
+}
+.fb-select-box:focus{outline:none;border-color:var(--a);background:var(--p3);box-shadow:0 0 0 3px rgba(0,180,255,.08)}
+.fb-select-box:disabled{opacity:.38;cursor:not-allowed}
+.fb-select-box option{background:var(--p2)}
+.fb-sel-wrap{position:relative}
+.fb-spinner{position:absolute;right:26px;top:50%;transform:translateY(-50%);width:10px;height:10px;border:1.5px solid var(--a);border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;display:none}
+.fb-spinner.show{display:block}
+/* step spacer between filter groups and action area */
+.fb-spacer{flex:1}
+/* action buttons area */
+.fb-actions{
+  display:flex;flex-direction:column;gap:6px;
+  align-self:flex-end;
+  padding-bottom:1px;
+  min-width:150px;
+}
+.btn-pull{
+  padding:9px 18px;border-radius:var(--r6);
+  background:linear-gradient(135deg,var(--a),#0066cc);
+  color:#fff;border:none;
+  font-family:var(--mono);font-size:11px;font-weight:600;
+  cursor:pointer;letter-spacing:.05em;
+  transition:all .2s;white-space:nowrap;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  box-shadow:0 3px 16px rgba(0,180,255,.2);
+}
+.btn-pull:hover:not(:disabled){opacity:.88;transform:translateY(-1px);box-shadow:0 5px 24px rgba(0,180,255,.35)}
+.btn-pull:active:not(:disabled){transform:scale(.98)}
+.btn-pull:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+.btn-csv{
+  padding:7px 14px;border-radius:var(--r6);
+  background:var(--gg);border:1px solid var(--gb);
+  color:var(--g);font-family:var(--mono);font-size:10px;font-weight:500;
+  cursor:pointer;transition:all .2s;white-space:nowrap;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.btn-csv:hover:not(:disabled){background:rgba(0,229,160,.14);box-shadow:0 3px 12px rgba(0,229,160,.12)}
+.btn-csv:disabled{opacity:.28;cursor:not-allowed}
+.btn-reset{
+  padding:5px 10px;border-radius:var(--r6);background:transparent;
+  border:1px solid var(--w2);color:var(--tx3);
+  font-family:var(--mono);font-size:9px;cursor:pointer;transition:all .15s;
+  white-space:nowrap;text-align:center;
+}
+.btn-reset:hover{border-color:var(--rb);color:var(--r)}
+/* progress row */
+.fb-prog-row{
+  padding:8px 22px 10px;
+  display:none;
+}
+.prog-inner{display:flex;align-items:center;gap:10px}
+.prog-track{flex:1;height:3px;background:var(--p3);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--a),var(--g));border-radius:2px;transition:width .4s ease;width:0%}
+.prog-lbl{font-family:var(--mono);font-size:9px;color:var(--tx3);white-space:nowrap}
+.prog-pct{font-family:var(--mono);font-size:9px;color:var(--a);white-space:nowrap;min-width:28px;text-align:right}
+
+/* ═══ DASHBOARD AREA ═══ */
+.dash-area{
+  flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;
+  background:var(--bg);
+}
+
+/* KPI strip */
+.kpi-strip{
+  display:none;
+  grid-template-columns:repeat(5,1fr);
+  border-bottom:1px solid var(--w2);flex-shrink:0;
+}
+.kpi-strip.show{display:grid}
+.kpi-cell{
+  padding:12px 16px;border-right:1px solid var(--w1);
+  display:flex;flex-direction:column;gap:2px;
+  position:relative;overflow:hidden;
+  transition:background .2s;cursor:default;
+}
+.kpi-cell::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi-cell:last-child{border-right:none}
+.kpi-cell:hover{background:var(--w1)}
+.kpi-cell.ca::after{background:var(--a)}.kpi-cell.cg::after{background:var(--g)}
+.kpi-cell.co::after{background:var(--o)}.kpi-cell.cr::after{background:var(--r)}.kpi-cell.cv::after{background:var(--v)}
+.kn{font-family:var(--head);font-size:24px;font-weight:800;line-height:1;letter-spacing:-.02em}
+.kl{font-family:var(--mono);font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3)}
+.ks{font-size:10px;color:var(--tx3);margin-top:1px}
+.ks .ok{color:var(--g)}.ks .bad{color:var(--r)}.ks .warn{color:var(--o)}
+.kpi-cell.ca .kn{color:var(--a)}.kpi-cell.cg .kn{color:var(--g)}
+.kpi-cell.co .kn{color:var(--o)}.kpi-cell.cr .kn{color:var(--r)}.kpi-cell.cv .kn{color:var(--v)}
+
+/* Tab bar */
+.tab-bar{
+  display:none;flex-shrink:0;
+  border-bottom:1px solid var(--w2);background:var(--p0);padding:0 18px;
+}
+.tab-bar.show{display:flex}
+.tab-btn{
+  font-family:var(--mono);font-size:10px;font-weight:500;
+  padding:9px 13px;border:none;border-bottom:2px solid transparent;
+  background:transparent;color:var(--tx3);cursor:pointer;
+  transition:all .15s;margin-bottom:-1px;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:5px;
+}
+.tab-btn:hover{color:var(--tx2)}
+.tab-btn.active{color:var(--a);border-bottom-color:var(--a)}
+.tab-cnt{font-size:8px;padding:1px 5px;border-radius:8px;background:var(--p2);color:var(--tx3);border:1px solid var(--w2)}
+.tab-btn.active .tab-cnt{background:var(--ag);color:var(--a);border-color:var(--ab)}
+
+/* Tab panes */
+.tab-pane{display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0}
+.tab-pane.active{display:flex}
+
+/* Empty state */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center}
+.empty-ico{font-size:36px;margin-bottom:12px;opacity:.2}
+.empty-h{font-family:var(--head);font-size:17px;font-weight:700;color:var(--tx2);margin-bottom:5px}
+.empty-p{font-family:var(--mono);font-size:10px;color:var(--tx3);line-height:1.7;max-width:340px}
+.empty-hint{
+  margin-top:14px;padding:8px 12px;background:var(--ag);
+  border:1px solid var(--ab);border-radius:var(--r6);
+  font-family:var(--mono);font-size:10px;color:var(--a);line-height:1.7;
+}
+
+/* Toolbar */
+.tbar{
+  padding:9px 18px;border-bottom:1px solid var(--w1);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  flex-shrink:0;background:rgba(13,21,37,.5);
+}
+.tbar-pills{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.qpill{
+  font-family:var(--mono);font-size:9px;padding:3px 9px;
+  border-radius:4px;border:1px solid var(--w2);background:var(--p1);color:var(--tx3);
+  cursor:pointer;transition:all .15s;
+}
+.qpill:hover{border-color:var(--w3);color:var(--tx2)}
+.qpill:not(.active){opacity:.5}
+.qpill.active{opacity:1}
+.qpill.qall.active{color:var(--a);border-color:var(--ab);background:var(--ag)}
+.qpill.qfail.active{color:var(--r);border-color:var(--rb);background:var(--rg)}
+.qpill.qskip.active{color:var(--o);border-color:var(--ob);background:var(--og)}
+.qpill.qblock.active{color:var(--v);border-color:var(--vb);background:var(--vg)}
+.row-cnt{font-family:var(--mono);font-size:9px;color:var(--tx3)}
+
+/* Table */
+.tbl-wrap{overflow:auto;flex:1}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{
+  background:var(--p1);color:var(--tx3);
+  font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.07em;
+  padding:9px 13px;text-align:left;font-weight:500;
+  border-bottom:1px solid var(--w2);position:sticky;top:0;z-index:4;white-space:nowrap;
+}
+.thsort{cursor:pointer;user-select:none;transition:color .15s}
+.thsort:hover{color:var(--a)}
+tbody tr{border-bottom:1px solid var(--w1);transition:background .1s;cursor:pointer}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+tbody tr.row-exp{background:rgba(0,180,255,.03)}
+td{padding:8px 13px;vertical-align:middle}
+.sid{font-family:var(--mono);font-size:10px;color:var(--s);background:var(--sg);border:1px solid var(--sb);padding:2px 6px;border-radius:3px;display:inline-block;white-space:nowrap}
+.stitle{font-size:12px;color:var(--tx);line-height:1.35;margin-top:3px;font-weight:500}
+.sepic{font-family:var(--mono);font-size:9px;color:var(--tx3);margin-top:2px}
+.tc-row{display:flex;flex-wrap:wrap;gap:3px}
+.tcp{font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;border:1px solid;cursor:pointer;transition:filter .1s;white-space:nowrap}
+.tcp:hover{filter:brightness(1.2)}
+.tcp.pass{color:var(--g);border-color:var(--gb);background:var(--gg)}
+.tcp.fail{color:var(--r);border-color:var(--rb);background:var(--rg)}
+.tcp.skip{color:var(--o);border-color:var(--ob);background:var(--og)}
+.tcp.block{color:var(--v);border-color:var(--vb);background:var(--vg)}
+.tcp.notrun{color:var(--tx3);border-color:var(--w2);background:var(--p2)}
+.tcp.inprogress{color:var(--a);border-color:var(--ab);background:var(--ag)}
+.dtag{font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;border:1px solid;display:inline-flex;align-items:center;gap:3px;cursor:pointer}
+.dtag:hover{filter:brightness(1.15)}
+.ddot{width:4px;height:4px;border-radius:50%;flex-shrink:0}
+.dtag.crit{color:var(--r);border-color:var(--rb);background:var(--rg)}.dtag.crit .ddot{background:var(--r)}
+.dtag.high{color:var(--o);border-color:var(--ob);background:var(--og)}.dtag.high .ddot{background:var(--o)}
+.dtag.med{color:var(--tx3);border-color:var(--w2);background:var(--p2)}
+.covv{font-family:var(--mono);font-size:11px;font-weight:600}
+.covb{height:3px;background:var(--p3);border-radius:2px;overflow:hidden;margin-top:3px;min-width:60px}
+.covf{height:100%;border-radius:2px}
+.sbadge{display:inline-flex;align-items:center;gap:3px;font-family:var(--mono);font-size:9px;font-weight:500;padding:3px 7px;border-radius:3px;border:1px solid;white-space:nowrap}
+.sdot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.sbadge.pass{color:var(--g);border-color:var(--gb);background:var(--gg)}.sbadge.pass .sdot{background:var(--g)}
+.sbadge.fail{color:var(--r);border-color:var(--rb);background:var(--rg)}.sbadge.fail .sdot{background:var(--r)}
+.sbadge.skip{color:var(--o);border-color:var(--ob);background:var(--og)}.sbadge.skip .sdot{background:var(--o)}
+.sbadge.block{color:var(--v);border-color:var(--vb);background:var(--vg)}.sbadge.block .sdot{background:var(--v)}
+.sbadge.notrun{color:var(--tx3);border-color:var(--w2);background:var(--p1)}.sbadge.notrun .sdot{background:var(--tx3)}
+.sbadge.inprogress{color:var(--a);border-color:var(--ab);background:var(--ag)}.sbadge.inprogress .sdot{background:var(--a)}
+.sbadge.Active{color:var(--r);border-color:var(--rb);background:var(--rg)}.sbadge.Active .sdot{background:var(--r)}
+.sbadge.Resolved{color:var(--g);border-color:var(--gb);background:var(--gg)}.sbadge.Resolved .sdot{background:var(--g)}
+.sbadge.inprog2{color:var(--a);border-color:var(--ab);background:var(--ag)}.sbadge.inprog2 .sdot{background:var(--a)}
+.pri{font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px}
+.pri.p1{color:var(--r);background:var(--rg)}.pri.p2{color:var(--o);background:var(--og)}.pri.p3{color:var(--tx3);background:var(--p2)}
+.env-row{display:flex;gap:3px;flex-wrap:wrap}
+.envc{font-family:var(--mono);font-size:8px;padding:1px 5px;border-radius:2px;font-weight:600}
+.envc.dev{color:var(--g);background:rgba(0,229,160,.12)}.envc.staging{color:var(--o);background:rgba(255,159,67,.12)}.envc.uat{color:var(--a);background:rgba(0,180,255,.12)}.envc.prod{color:var(--r);background:rgba(255,75,110,.12)}
+.av{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:8px;font-weight:700;border:1px solid;vertical-align:middle;flex-shrink:0}
+.exp-row td{padding:0;background:rgba(0,180,255,.025)}
+.exp-content{display:none;padding:12px 16px;border-top:1px solid rgba(0,180,255,.08)}
+.exp-content.open{display:block}
+.exp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.exp-col h5{font-family:var(--mono);font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:var(--tx3);margin-bottom:7px}
+.exp-item{display:flex;gap:6px;margin-bottom:5px;font-size:11px;color:var(--tx2);line-height:1.4}
+.exp-n{width:16px;height:16px;border-radius:3px;background:var(--p3);font-family:var(--mono);font-size:8px;color:var(--tx3);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.sev-row{display:flex;gap:5px}
+.sevbtn{font-family:var(--mono);font-size:9px;padding:3px 9px;border-radius:10px;border:1px solid var(--w2);background:var(--p2);color:var(--tx3);cursor:pointer;transition:all .15s}
+.sevbtn:hover{border-color:var(--w3);color:var(--tx2)}
+.sevbtn.active{color:var(--a);border-color:var(--ab);background:var(--ag)}
+.sevbtn.active.cr{color:var(--r);border-color:var(--rb);background:var(--rg)}
+.sevbtn.active.co{color:var(--o);border-color:var(--ob);background:var(--og)}
+.sum-body{padding:18px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+.sum-card{background:var(--p0);border:1px solid var(--w2);border-radius:var(--r12);overflow:hidden}
+.sum-card-h{background:var(--p1);border-bottom:1px solid var(--w2);padding:9px 13px;display:flex;align-items:center;justify-content:space-between}
+.sum-card-t{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--tx2);font-weight:500}
+.sum-card-b{padding:13px}
+.sum4{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.sum2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.mst{background:var(--p1);border:1px solid var(--w1);border-radius:var(--r8);padding:10px 12px;transition:border-color .2s}
+.mst:hover{border-color:var(--w2)}
+.mstn{font-family:var(--head);font-size:19px;font-weight:800;line-height:1;letter-spacing:-.01em}
+.mstl{font-family:var(--mono);font-size:8px;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.mst.ca .mstn{color:var(--a)}.mst.cg .mstn{color:var(--g)}.mst.cr .mstn{color:var(--r)}.mst.co .mstn{color:var(--o)}.mst.cv .mstn{color:var(--v)}
+.brow{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.blow{font-family:var(--mono);font-size:9px;color:var(--tx3);width:64px;flex-shrink:0;text-align:right}
+.btrk{flex:1;height:6px;background:var(--p2);border-radius:3px;overflow:hidden}
+.bfil{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.bval{font-family:var(--mono);font-size:9px;color:var(--tx2);width:32px;text-align:right;flex-shrink:0}
+.donut-w{display:flex;align-items:center;gap:15px}
+.dleg{display:flex;flex-direction:column;gap:5px}
+.dlr{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx2)}
+.dld{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dlc{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--tx);font-weight:600}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,180,255,.2)}
+#tip{position:fixed;background:var(--p3);border:1px solid var(--w3);border-radius:var(--r6);padding:6px 10px;font-family:var(--mono);font-size:10px;color:var(--tx);pointer-events:none;z-index:9999;display:none;line-height:1.6;max-width:220px;box-shadow:0 4px 20px rgba(0,0,0,.6)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.fin{animation:fadeUp .3s ease forwards}
+
+/* Project locked pill */
+.proj-locked{
+  display:flex;align-items:center;gap:8px;
+  background:var(--p2);
+  border:1px solid rgba(0,229,160,.3);
+  border-radius:var(--r6);
+  padding:8px 11px;
+  position:relative;
+  overflow:hidden;
+}
+.proj-locked::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:var(--g);
+}
+.proj-lock-ico{font-size:12px;flex-shrink:0;filter:grayscale(.3)}
+.proj-lock-name{
+  font-family:var(--mono);font-size:12px;font-weight:600;
+  color:var(--g);letter-spacing:.02em;flex:1;
+}
+.proj-lock-badge{
+  font-family:var(--mono);font-size:8px;
+  color:rgba(0,229,160,.6);
+  background:rgba(0,229,160,.08);
+  border:1px solid rgba(0,229,160,.2);
+  padding:2px 6px;border-radius:3px;
+  letter-spacing:.05em;white-space:nowrap;
+}
+/* Hint override for team/area after org typed */
+.hint-auto{color:var(--a)!important;opacity:1!important}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOPBAR ═══ -->
+<div class="topbar">
+  <div class="tb-logo">ADO</div>
+  <span class="tb-name">Trace<span>Matrix</span></span>
+  <div class="tb-sep"></div>
+  <span class="tb-sub">TaxProf · Release-wise Traceability Automation Tool</span>
+  <div class="tb-right">
+    <div class="conn-indicator">
+      <div class="cled" id="cled"></div>
+      <span id="connTxt">Not connected</span>
+    </div>
+    <span class="tb-badge a" id="tbRelBadge" style="display:none">—</span>
+    <span class="tb-badge g" id="tbSprintBadge" style="display:none">—</span>
+  </div>
+</div>
+
+<!-- ═══ ROOT LAYOUT ═══ -->
+<div class="root-layout">
+
+<!-- ════ LEFT — ADO CONFIGURATION ════ -->
+<div class="left-panel">
+  <div class="lp-head">
+    <div class="lp-step-lbl">Step 1</div>
+    <div class="lp-title">ADO Configuration</div>
+    <div class="lp-sub">Project: <span style="color:var(--g);font-weight:600">TaxProf</span> · Connect to Azure DevOps</div>
+  </div>
+  <div class="lp-body">
+
+    <div class="fblock">
+      <div class="flabel">Personal Access Token <span class="req">*</span></div>
+      <div class="pat-wrap">
+        <input id="inPat" class="finput" type="password" placeholder="••••••••••••••••••••" autocomplete="off"/>
+        <button class="pat-eye" onclick="togglePat()">👁</button>
+      </div>
+      <div style="font-family:var(--mono);font-size:8px;color:var(--tx3);margin-top:4px;line-height:1.6">
+        Scopes required: <span style="color:var(--a)">Work Items (Read)</span> · <span style="color:var(--a)">Test Plans (Read)</span><br>
+        <span style="color:var(--tx3)">Generate at: dev.azure.com → User Settings → Personal Access Tokens</span>
+      </div>
+      <!-- Test Connection button lives right below PAT -->
+      <button class="btn-test" id="btnTest" onclick="testConn()" style="margin-top:8px">
+        <span id="testIcon">⚡</span> Test Connection
+      </button>
+      <!-- Animated progress bar shown while connecting -->
+      <div class="conn-progress-wrap" id="connProgressWrap">
+        <div class="conn-step-label">
+          <span id="connStepTxt">Connecting…</span>
+          <span id="connPctTxt">0%</span>
+        </div>
+        <div class="conn-progress-track">
+          <div class="conn-progress-bar" id="connProgressBar"></div>
+        </div>
+      </div>
+      <div class="conn-box" id="connBox"></div>
+    </div>
+
+    <div class="fblock">
+      <div class="flabel">Organization Name <span class="req">*</span></div>
+      <input id="inOrg" class="finput" type="text" placeholder="e.g. tr-tax" value="tr-tax" oninput="onOrgInput()" autocomplete="off"/>
+    </div>
+
+    <div class="fblock">
+      <div class="flabel">Project Name <span class="req">*</span>
+        <span class="hint" style="margin-left:auto;color:var(--g);opacity:1">● Fixed</span>
+      </div>
+      <!-- Project is fixed to TaxProf — displayed as a locked pill -->
+      <div class="proj-locked" id="projLockedBox">
+        <span class="proj-lock-ico">🔒</span>
+        <span class="proj-lock-name">TaxProf</span>
+        <span class="proj-lock-badge">Pre-configured</span>
+      </div>
+      <!-- hidden input so JS can read S.project -->
+      <input type="hidden" id="selProject" value="TaxProf"/>
+    </div>
+
+    <div class="fblock">
+      <div class="flabel">Area Path <span class="req">*</span></div>
+      <input id="selArea" class="finput" type="text"
+             value="TaxProf\surePrep\components\TaxCaddy\surePrep-tcd-elite"
+             placeholder="e.g. TaxProf\surePrep\components\TaxCaddy"
+             oninput="onAreaInput()" autocomplete="off"/>
+      <div style="font-family:var(--mono);font-size:8px;color:var(--tx3);margin-top:3px">
+        Edit path then re-click <strong style="color:var(--a)">Test Connection</strong> to reload releases
+      </div>
+      <!-- stubs so existing JS calls do not throw -->
+      <div style="display:none" id="loadTeam"></div>
+      <div style="display:none" id="loadArea"></div>
+      <div style="display:none" id="hintTeam"></div>
+      <div style="display:none" id="hintArea"></div>
+      <select style="display:none" id="selTeam"><option value="TaxProf Team" selected>TaxProf Team</option></select>
+    </div>
+
+  </div>
+  <div class="lp-footer">
+    <button class="btn-test" id="btnDemoStatic" onclick="loadDemoDirectly()" style="border-color:rgba(0,229,160,.25);color:var(--g)">
+      ▶  Load Demo Data (no PAT needed)
+    </button>
+  </div>
+</div>
+
+<!-- ════ RIGHT COLUMN ════ -->
+<div class="right-col">
+
+  <!-- ── HORIZONTAL FILTER BAR ── -->
+  <div class="filter-bar">
+    <div class="fb-top">
+      <span class="fb-top-label">Traceability Filters</span>
+      <div class="fb-rel-card" id="racCard">
+        <span class="fb-rel-name" id="racName">—</span>
+        <span class="fb-rel-meta" id="racMeta"></span>
+      </div>
+    </div>
+
+    <!-- 4 Step filters + action buttons in one horizontal row -->
+    <div class="fb-filters">
+
+      <!-- Step 1: Release -->
+      <div class="fb-step active" id="step1" style="margin-right:28px">
+        <div class="fb-step-hd">
+          <div class="fb-step-num">1</div>
+          <span class="fb-step-lbl">ADO Release</span>
+        </div>
+        <div class="fb-sel-wrap">
+          <select id="selRelease" class="fb-select-box" disabled onchange="onRelChange()" style="width:230px">
+            <option value="">— connect ADO first —</option>
+          </select>
+          <div class="fb-spinner" id="loadRelease"></div>
+        </div>
+      </div>
+
+      <!-- Step 2: Story -->
+      <div class="fb-step" id="step2" style="margin-right:28px">
+        <div class="fb-step-hd">
+          <div class="fb-step-num">2</div>
+          <span class="fb-step-lbl">Story ID</span>
+        </div>
+        <div class="fb-sel-wrap">
+          <select id="selStory" class="fb-select-box" disabled onchange="applyFilters()" style="width:200px">
+            <option value="">All Stories</option>
+          </select>
+          <div class="fb-spinner" id="loadStory"></div>
+        </div>
+      </div>
+
+      <!-- Step 3: TC -->
+      <div class="fb-step" id="step3" style="margin-right:28px">
+        <div class="fb-step-hd">
+          <div class="fb-step-num">3</div>
+          <span class="fb-step-lbl">Test Case</span>
+        </div>
+        <div class="fb-sel-wrap">
+          <select id="selTC" class="fb-select-box" disabled onchange="applyFilters()" style="width:200px">
+            <option value="">All Test Cases</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Step 4: Defect -->
+      <div class="fb-step" id="step4" style="margin-right:28px">
+        <div class="fb-step-hd">
+          <div class="fb-step-num">4</div>
+          <span class="fb-step-lbl">Defect</span>
+        </div>
+        <div class="fb-sel-wrap">
+          <select id="selDef" class="fb-select-box" disabled onchange="applyFilters()" style="width:180px">
+            <option value="">All Defects</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="fb-spacer"></div>
+
+      <!-- Actions -->
+      <div class="fb-actions">
+        <button class="btn-pull" id="btnPull" disabled onclick="pullData()">
+          <span id="pullIcon">▶</span> Pull Data
+        </button>
+        <button class="btn-csv" id="btnCsv" disabled onclick="downloadCSV()">
+          ⬇ Download CSV
+        </button>
+        <button class="btn-reset" onclick="resetAll()">✕ Reset</button>
+      </div>
+
+    </div><!-- /fb-filters -->
+
+    <!-- Progress bar row -->
+    <div class="fb-prog-row" id="progRow">
+      <div class="prog-inner">
+        <span class="prog-lbl" id="progLbl">Loading…</span>
+        <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+        <span class="prog-pct" id="progPct">0%</span>
+      </div>
+    </div>
+
+  </div><!-- /filter-bar -->
+
+  <!-- ── DASHBOARD AREA ── -->
+  <div class="dash-area">
+
+    <!-- KPI strip -->
+    <div class="kpi-strip" id="kpiStrip">
+      <div class="kpi-cell ca"><div class="kn" id="kn0">0</div><div class="kl">Stories</div><div class="ks" id="ks0">—</div></div>
+      <div class="kpi-cell cg"><div class="kn" id="kn1">0</div><div class="kl">Test Cases</div><div class="ks" id="ks1">—</div></div>
+      <div class="kpi-cell co"><div class="kn" id="kn2">0%</div><div class="kl">Pass Rate</div><div class="ks" id="ks2">—</div></div>
+      <div class="kpi-cell cr"><div class="kn" id="kn3">0</div><div class="kl">Defects</div><div class="ks" id="ks3">—</div></div>
+      <div class="kpi-cell cv"><div class="kn" id="kn4">0%</div><div class="kl">Coverage</div><div class="ks" id="ks4">—</div></div>
+    </div>
+
+    <!-- Tab bar -->
+    <div class="tab-bar" id="tabBar">
+      <button class="tab-btn active" onclick="switchTab('trace',this)">🔗 Matrix <span class="tab-cnt" id="ctTrace">0</span></button>
+      <button class="tab-btn" onclick="switchTab('tcs',this)">✅ Test Cases <span class="tab-cnt" id="ctTCs">0</span></button>
+      <button class="tab-btn" onclick="switchTab('defs',this)">🐛 Defects <span class="tab-cnt" id="ctDefs">0</span></button>
+      <button class="tab-btn" onclick="switchTab('summary',this)">📊 Summary</button>
+    </div>
+
+    <!-- PANE: Trace -->
+    <div id="pane-trace" class="tab-pane active">
+      <div class="empty" id="emTrace">
+        <div class="empty-ico">🔗</div>
+        <div class="empty-h">No Data Loaded</div>
+        <div class="empty-p">Fill the ADO Configuration on the left, click Test Connection, then select a release and click ▶ Pull Data.</div>
+        <div class="empty-hint">← PAT · Organization · Team · Area<br>then select Release → ▶ Pull Data above</div>
+      </div>
+      <div id="traceWrap" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div class="tbar">
+          <div class="tbar-pills">
+            <button class="qpill qall active" onclick="quickF('all',this)">All</button>
+            <button class="qpill qfail" onclick="quickF('fail',this)">Failing</button>
+            <button class="qpill qskip" onclick="quickF('skip',this)">Skipped</button>
+            <button class="qpill qblock" onclick="quickF('block',this)">Blocked</button>
+          </div>
+          <span class="row-cnt" id="rcTrace">0 stories</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th class="thsort" onclick="doSort('id')">Story ↕</th>
+              <th>Manual TCs</th><th>Auto TCs</th>
+              <th class="thsort" onclick="doSort('cov')">Cov ↕</th>
+              <th>Defects</th><th>Environments</th>
+              <th class="thsort" onclick="doSort('state')">State ↕</th>
+            </tr></thead>
+            <tbody id="traceTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANE: TCs -->
+    <div id="pane-tcs" class="tab-pane">
+      <div class="empty" id="emTCs"><div class="empty-ico">✅</div><div class="empty-h">No Test Cases</div><div class="empty-p">Pull data to view test cases.</div></div>
+      <div id="tcsWrap" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div class="tbar"><div class="tbar-pills" id="tcPills"></div><span class="row-cnt" id="rcTCs">0</span></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>TC ID</th><th>Test Case Name</th><th>Type</th><th>Priority</th>
+              <th>Status</th><th>Assignee</th><th>Story</th><th>Environments</th><th>Duration</th><th>Defects</th>
+            </tr></thead>
+            <tbody id="tcsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANE: Defects -->
+    <div id="pane-defs" class="tab-pane">
+      <div class="empty" id="emDefs"><div class="empty-ico">🐛</div><div class="empty-h">No Defects</div><div class="empty-p">Pull data to view defects.</div></div>
+      <div id="defsWrap" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div class="tbar">
+          <div class="sev-row">
+            <button class="sevbtn active" onclick="sevF('all',this)">All</button>
+            <button class="sevbtn cr" onclick="sevF('crit',this)">🔴 Critical</button>
+            <button class="sevbtn co" onclick="sevF('high',this)">🟠 High</button>
+            <button class="sevbtn" onclick="sevF('med',this)">🟡 Med</button>
+          </div>
+          <span class="row-cnt" id="rcDefs">0</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>ID</th><th>Title</th><th>Severity</th><th>Priority</th><th>State</th>
+              <th>Story</th><th>TC</th><th>Assignee</th><th>Environment</th><th>Created</th>
+            </tr></thead>
+            <tbody id="defsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANE: Summary -->
+    <div id="pane-summary" class="tab-pane">
+      <div class="empty" id="emSum"><div class="empty-ico">📊</div><div class="empty-h">No Summary</div><div class="empty-p">Pull data to generate summary report.</div></div>
+      <div id="sumWrap" class="sum-body" style="display:none"></div>
+    </div>
+
+  </div><!-- /dash-area -->
+</div><!-- /right-col -->
+</div><!-- /root-layout -->
+
+<div id="tip"></div>
+<script>
+/* ── STATE ── */
+var S = {
+  org:'', pat:'', project:'', team:'', area:'',
+  connected:false, demo:false,
+  stories:[], tcs:[], defects:[],
+  fStories:[], fTCs:[], fDefects:[],
+  relName:'', relId:'',
+  sortKey:'', sortDir:1, qf:'all', sf:'all'
+};
+
+/* ══════════════════════════════════════════
+   DEMO DATA (full TC_26 release)
+══════════════════════════════════════════ */
+var DEMO = {
+  projects:['TaxProf'],
+  teams:{
+    'TaxProf':['TaxProf QA Team','TaxProf Dev Team','TaxProf Release Team','TaxProf Automation']
+  },
+  areas:{
+    'TaxProf QA Team':['TaxProf\\QA','TaxProf\\QA\\Functional','TaxProf\\QA\\Regression','TaxProf\\QA\\Automation','TaxProf\\QA\\Performance'],
+    'TaxProf Dev Team':['TaxProf\\Dev','TaxProf\\Dev\\Frontend','TaxProf\\Dev\\Backend','TaxProf\\Dev\\API'],
+    'TaxProf Release Team':['TaxProf\\Release','TaxProf\\Release\\Sprint26','TaxProf\\Release\\Hotfix'],
+    'TaxProf Automation':['TaxProf\\Automation','TaxProf\\Automation\\E2E','TaxProf\\Automation\\Unit','TaxProf\\Automation\\Integration']
+  },
+  releases:[
+    {id:'TC_26_Elite_Release_April_10.3.0',name:'TC_26_Elite_Release_April_10.3.0',sprint:'Sprint 26',ver:'10.3.0'},
+    {id:'TC_25_Core_Release_March_10.2.0', name:'TC_25_Core_Release_March_10.2.0', sprint:'Sprint 25',ver:'10.2.0'},
+    {id:'TC_24_Sprint_Release_Feb_10.1.5', name:'TC_24_Sprint_Release_Feb_10.1.5',  sprint:'Sprint 24',ver:'10.1.5'},
+    {id:'TC_23_Hotfix_Release_Jan_10.0.9', name:'TC_23_Hotfix_Release_Jan_10.0.9',  sprint:'Sprint 23',ver:'10.0.9'}
+  ],
+  DB:{
+    'TC_26_Elite_Release_April_10.3.0':{
+      stories:[
+        {id:'US-4401',epic:'Auth',title:'SSO login via Azure AD',pri:'P1',state:'Testing',tcs:['TC-1001','TC-1002','TC-1003','TC-1004','TC-1005'],defs:['DEF-2201','DEF-2202'],who:'Riya K'},
+        {id:'US-4402',epic:'Auth',title:'Multi-factor authentication TOTP',pri:'P1',state:'Done',tcs:['TC-1006','TC-1007','TC-1008'],defs:[],who:'Meera P'},
+        {id:'US-4410',epic:'Payments',title:'Checkout with saved payment methods',pri:'P1',state:'Testing',tcs:['TC-1010','TC-1011','TC-1012','TC-1013'],defs:['DEF-2210','DEF-2211','DEF-2212'],who:'Karan S'},
+        {id:'US-4411',epic:'Payments',title:'Refund processing and reconciliation',pri:'P2',state:'In Review',tcs:['TC-1014','TC-1015','TC-1016'],defs:['DEF-2213'],who:'Sunita R'},
+        {id:'US-4420',epic:'Dashboard',title:'Analytics dashboard real-time KPIs',pri:'P2',state:'Done',tcs:['TC-1020','TC-1021','TC-1022','TC-1023'],defs:[],who:'Deepa N'},
+        {id:'US-4421',epic:'Dashboard',title:'Export reports PDF and Excel',pri:'P3',state:'Testing',tcs:['TC-1024','TC-1025'],defs:['DEF-2220'],who:'Deepa N'},
+        {id:'US-4430',epic:'Notifications',title:'Email digest preference management',pri:'P2',state:'Testing',tcs:['TC-1030','TC-1031','TC-1032'],defs:['DEF-2225'],who:'Ankit V'},
+        {id:'US-4431',epic:'Notifications',title:'Push notification delivery mobile',pri:'P3',state:'In Progress',tcs:['TC-1033','TC-1034'],defs:[],who:'Priya S'},
+        {id:'US-4440',epic:'Admin',title:'Role-based access control config',pri:'P1',state:'Done',tcs:['TC-1040','TC-1041','TC-1042','TC-1043'],defs:[],who:'Rahul T'},
+        {id:'US-4441',epic:'Admin',title:'Audit log viewer with filters',pri:'P2',state:'Testing',tcs:['TC-1044','TC-1045'],defs:['DEF-2230'],who:'Arjun M'}
+      ],
+      tcs:{
+        'TC-1001':{name:'Azure AD SSO happy path',type:'E2E',pri:'P1',status:'pass',who:'Riya K',envs:['dev','staging','uat'],dur:'3m 42s',defs:[]},
+        'TC-1002':{name:'SSO token expiry auto-refresh',type:'Integration',pri:'P1',status:'fail',who:'Riya K',envs:['dev','staging'],dur:'1m 18s',defs:['DEF-2201']},
+        'TC-1003':{name:'SSO fallback on IdP timeout',type:'Manual',pri:'P2',status:'pass',who:'Arjun M',envs:['dev','staging','uat'],dur:'5m 00s',defs:[]},
+        'TC-1004':{name:'Logout invalidates all tabs',type:'E2E',pri:'P1',status:'fail',who:'Riya K',envs:['staging'],dur:'2m 05s',defs:['DEF-2202']},
+        'TC-1005':{name:'Invalid domain blocked',type:'Security',pri:'P1',status:'pass',who:'Arjun M',envs:['dev','staging','uat','prod'],dur:'0m 55s',defs:[]},
+        'TC-1006':{name:'TOTP setup QR generation',type:'Manual',pri:'P1',status:'pass',who:'Meera P',envs:['dev','staging','uat'],dur:'4m 20s',defs:[]},
+        'TC-1007':{name:'TOTP code validation',type:'E2E',pri:'P1',status:'pass',who:'Meera P',envs:['dev','staging','uat','prod'],dur:'2m 10s',defs:[]},
+        'TC-1008':{name:'Backup codes usage',type:'Manual',pri:'P2',status:'pass',who:'Meera P',envs:['dev','staging'],dur:'3m 30s',defs:[]},
+        'TC-1010':{name:'Checkout saved Visa',type:'E2E',pri:'P1',status:'pass',who:'Karan S',envs:['dev','staging','uat'],dur:'4m 15s',defs:[]},
+        'TC-1011':{name:'Amex 3DS challenge',type:'E2E',pri:'P1',status:'fail',who:'Karan S',envs:['staging'],dur:'6m 00s',defs:['DEF-2210']},
+        'TC-1012':{name:'Apple Pay mobile',type:'Manual',pri:'P2',status:'block',who:'Sunita R',envs:['uat'],dur:'—',defs:['DEF-2211']},
+        'TC-1013':{name:'Cart total tax accuracy',type:'Unit',pri:'P2',status:'pass',who:'Karan S',envs:['dev','staging','uat','prod'],dur:'0m 45s',defs:[]},
+        'TC-1014':{name:'Full refund portal',type:'Manual',pri:'P2',status:'pass',who:'Sunita R',envs:['dev','staging','uat'],dur:'5m 20s',defs:[]},
+        'TC-1015':{name:'Partial refund selection',type:'Manual',pri:'P2',status:'pass',who:'Sunita R',envs:['dev','staging'],dur:'4m 10s',defs:[]},
+        'TC-1016':{name:'Cross-border FX refund',type:'Manual',pri:'P3',status:'skip',who:'Karan S',envs:['staging'],dur:'—',defs:['DEF-2213']},
+        'TC-1020':{name:'Dashboard KPI data load',type:'E2E',pri:'P2',status:'pass',who:'Deepa N',envs:['dev','staging','uat','prod'],dur:'3m 00s',defs:[]},
+        'TC-1021':{name:'Date range filter charts',type:'E2E',pri:'P2',status:'pass',who:'Deepa N',envs:['dev','staging','uat'],dur:'2m 40s',defs:[]},
+        'TC-1022':{name:'Real-time refresh 30s',type:'Integration',pri:'P2',status:'pass',who:'Deepa N',envs:['dev','staging'],dur:'5m 00s',defs:[]},
+        'TC-1023':{name:'Mobile responsive view',type:'Manual',pri:'P3',status:'pass',who:'Priya S',envs:['dev','staging','uat'],dur:'3m 50s',defs:[]},
+        'TC-1024':{name:'Export PDF report',type:'Manual',pri:'P3',status:'fail',who:'Deepa N',envs:['staging','uat'],dur:'2m 30s',defs:['DEF-2220']},
+        'TC-1025':{name:'Export Excel xlsx',type:'E2E',pri:'P3',status:'pass',who:'Deepa N',envs:['dev','staging','uat'],dur:'1m 50s',defs:[]},
+        'TC-1030':{name:'Email digest weekly',type:'Manual',pri:'P2',status:'fail',who:'Ankit V',envs:['dev','prod'],dur:'8m 00s',defs:['DEF-2225']},
+        'TC-1031':{name:'Unsubscribe link',type:'Manual',pri:'P2',status:'pass',who:'Ankit V',envs:['dev','staging','uat'],dur:'1m 30s',defs:[]},
+        'TC-1032':{name:'Re-subscribe preferences',type:'Manual',pri:'P3',status:'pass',who:'Ankit V',envs:['dev','staging'],dur:'1m 20s',defs:[]},
+        'TC-1033':{name:'Push notification order',type:'Integration',pri:'P3',status:'inprogress',who:'Priya S',envs:['dev'],dur:'In Progress',defs:[]},
+        'TC-1034':{name:'Push opt-out device',type:'Manual',pri:'P3',status:'notrun',who:'Priya S',envs:['dev'],dur:'—',defs:[]},
+        'TC-1040':{name:'Admin assign role',type:'E2E',pri:'P1',status:'pass',who:'Rahul T',envs:['dev','staging','uat','prod'],dur:'2m 10s',defs:[]},
+        'TC-1041':{name:'API role enforcement',type:'Security',pri:'P1',status:'pass',who:'Arjun M',envs:['dev','staging','uat'],dur:'3m 20s',defs:[]},
+        'TC-1042':{name:'Bulk CSV role import',type:'Manual',pri:'P2',status:'pass',who:'Rahul T',envs:['dev','staging'],dur:'4m 45s',defs:[]},
+        'TC-1043':{name:'Role deletion cascade',type:'Manual',pri:'P2',status:'pass',who:'Rahul T',envs:['dev','staging'],dur:'3m 00s',defs:[]},
+        'TC-1044':{name:'Audit log login events',type:'E2E',pri:'P2',status:'fail',who:'Arjun M',envs:['staging','uat'],dur:'2m 20s',defs:['DEF-2230']},
+        'TC-1045':{name:'Audit log export filter',type:'Manual',pri:'P3',status:'pass',who:'Rahul T',envs:['dev','staging'],dur:'3m 10s',defs:[]}
+      },
+      defects:[
+        {id:'DEF-2201',title:'SSO token not refreshed — user logged out',sev:'crit',state:'Active',pri:'P1',who:'Riya K',env:'STAGING',story:'US-4401',tc:'TC-1002',created:'2025-04-03'},
+        {id:'DEF-2202',title:'Logout does not invalidate other tabs',sev:'high',state:'Active',pri:'P1',who:'Arjun M',env:'STAGING',story:'US-4401',tc:'TC-1004',created:'2025-04-04'},
+        {id:'DEF-2210',title:'Amex 3DS redirect loop — payment unconfirmed',sev:'crit',state:'Active',pri:'P1',who:'Karan S',env:'STAGING',story:'US-4410',tc:'TC-1011',created:'2025-04-05'},
+        {id:'DEF-2211',title:'Apple Pay sheet does not dismiss on cancel',sev:'high',state:'In Progress',pri:'P2',who:'Sunita R',env:'UAT',story:'US-4410',tc:'TC-1012',created:'2025-04-06'},
+        {id:'DEF-2212',title:'Order confirmation email delayed >8 minutes',sev:'med',state:'Resolved',pri:'P2',who:'Karan S',env:'PROD',story:'US-4410',tc:'TC-1010',created:'2025-04-02'},
+        {id:'DEF-2213',title:'FX refund shows wrong currency symbol EUR→USD',sev:'med',state:'Active',pri:'P3',who:'Sunita R',env:'UAT',story:'US-4411',tc:'TC-1016',created:'2025-04-07'},
+        {id:'DEF-2220',title:'PDF export clips charts on A4 page',sev:'high',state:'Active',pri:'P2',who:'Deepa N',env:'STAGING',story:'US-4421',tc:'TC-1024',created:'2025-04-05'},
+        {id:'DEF-2225',title:'Weekly digest sent daily for timezone accounts',sev:'crit',state:'Active',pri:'P1',who:'Ankit V',env:'PROD',story:'US-4430',tc:'TC-1030',created:'2025-04-04'},
+        {id:'DEF-2230',title:'Audit log login event missing IP address',sev:'med',state:'Active',pri:'P2',who:'Arjun M',env:'STAGING',story:'US-4441',tc:'TC-1044',created:'2025-04-06'}
+      ]
+    },
+    'TC_25_Core_Release_March_10.2.0':{
+      stories:[
+        {id:'US-4300',epic:'Core',title:'User profile photo upload',pri:'P2',state:'Done',tcs:['TC-900','TC-901'],defs:[],who:'Neha R'},
+        {id:'US-4301',epic:'Core',title:'Password reset via email',pri:'P1',state:'Done',tcs:['TC-902','TC-903','TC-904'],defs:['DEF-2100'],who:'Anil K'}
+      ],
+      tcs:{
+        'TC-900':{name:'Upload JPEG profile photo',type:'Manual',pri:'P2',status:'pass',who:'Neha R',envs:['dev','staging','uat'],dur:'1m 30s',defs:[]},
+        'TC-901':{name:'Reject file over 5MB',type:'Manual',pri:'P2',status:'pass',who:'Neha R',envs:['dev','staging'],dur:'0m 50s',defs:[]},
+        'TC-902':{name:'Password reset email delivery',type:'E2E',pri:'P1',status:'pass',who:'Anil K',envs:['dev','staging','uat'],dur:'2m 10s',defs:[]},
+        'TC-903':{name:'Reset link expires after 1 hour',type:'Manual',pri:'P1',status:'pass',who:'Anil K',envs:['dev','staging'],dur:'1m 20s',defs:[]},
+        'TC-904':{name:'Password complexity validation',type:'Unit',pri:'P1',status:'fail',who:'Anil K',envs:['dev'],dur:'0m 30s',defs:['DEF-2100']}
+      },
+      defects:[{id:'DEF-2100',title:'Password allows dictionary words',sev:'high',state:'Resolved',pri:'P1',who:'Anil K',env:'DEV',story:'US-4301',tc:'TC-904',created:'2025-03-10'}]
+    },
+    'TC_24_Sprint_Release_Feb_10.1.5':{
+      stories:[{id:'US-4200',epic:'Search',title:'Global search with autocomplete',pri:'P2',state:'Done',tcs:['TC-800'],defs:[],who:'Vijay N'}],
+      tcs:{'TC-800':{name:'Autocomplete top 5 results',type:'E2E',pri:'P2',status:'pass',who:'Vijay N',envs:['dev','staging'],dur:'1m 10s',defs:[]}},
+      defects:[]
+    },
+    'TC_23_Hotfix_Release_Jan_10.0.9':{
+      stories:[{id:'US-4100',epic:'Security',title:'XSS vulnerability patch',pri:'P1',state:'Done',tcs:['TC-700'],defs:[],who:'Arjun M'}],
+      tcs:{'TC-700':{name:'XSS payload blocked in comment',type:'Security',pri:'P1',status:'pass',who:'Arjun M',envs:['prod'],dur:'0m 40s',defs:[]}},
+      defects:[]
+    }
+  }
+};
+
+/* ══════════════════════════════════════════
+   ADO CONFIGURATION — CASCADE LOGIC
+══════════════════════════════════════════ */
+/* ── Auth helpers ── */
+function adoAuthHeader(){
+  return 'Basic '+btoa(':'+S.pat);
+}
+function adoH(isPost){
+  var h={'Authorization':adoAuthHeader(),'Accept':'application/json'};
+  if(isPost)h['Content-Type']='application/json';
+  return h;
+}
+
+/* ── CORS-safe fetch with multi-proxy fallback ──────────────────────────────
+   Problem: ADO REST requires Authorization, which triggers a CORS preflight.
+   Browsers block preflights from file:// and non-ADO origins.
+
+   Strategy:
+     1. Direct request (works when served from a web server / ADO origin)
+     2. api.allorigins.win  — returns JSON wrapper: { contents: "…" }
+     3. corsproxy.io        — forwards headers as-is
+     4. thingproxy.freeboard.io — last resort
+
+   For proxies that wrap the response we unwrap transparently so callers
+   always get a Response-like object with .ok, .status, and .json().
+
+   Proxy HTML error pages are detected and skipped automatically.
+   4xx/5xx from ADO itself are returned immediately (real auth/not-found errors).
+─────────────────────────────────────────────────────────────────────────── */
+
+/* ── ADO fetch — CORS proxy with fallback ───────────────────────────────────
+   Browser CORS blocks direct requests with Authorization headers from file://
+   We route through corsproxy.io which transparently forwards all headers.
+   If that fails we try a second proxy. 4xx from ADO = real auth errors.      */
+
+function fakeResp(body, status){
+  var ok = status>=200 && status<300;
+  return {
+    ok:ok, status:status, statusText:String(status), _b:body,
+    json:function(){ return Promise.resolve(JSON.parse(this._b)); },
+    text:function(){ return Promise.resolve(this._b); }
+  };
+}
+
+async function adoFetch(url, opts){
+  opts = opts||{};
+  var isPost = !!(opts.method && opts.method.toUpperCase()==='POST');
+  var hdrs = adoH(isPost);
+  var body = opts.body||undefined;
+
+  console.log('[ADO] fetching', url.replace(/https:\/\/[^/]+/,''));
+
+  /* ── Attempt 1: Direct fetch (works if browser trusts the origin) ── */
+  try{
+    var r = await fetch(url, {method:opts.method||'GET', headers:hdrs, body:body, mode:'cors'});
+    console.log('[ADO] direct ->', r.status);
+    if(r.status===401||r.status===403||r.status===404) return r;
+    if(r.ok) return r;
+  }catch(e){ console.warn('[ADO] direct blocked:', e.message); }
+
+  /* ── Attempt 2: corsproxy.io (forwards Authorization header) ── */
+  try{
+    var p2 = 'https://corsproxy.io/?url='+encodeURIComponent(url);
+    var r2 = await fetch(p2, {method:opts.method||'GET', headers:hdrs, body:body, mode:'cors'});
+    var txt2 = await r2.text();
+    console.log('[ADO] corsproxy ->', r2.status, txt2.slice(0,60));
+    if(txt2.trimStart().startsWith('<')) throw new Error('proxy returned HTML');
+    var fake2 = fakeResp(txt2, r2.status);
+    if(fake2.status===401||fake2.status===403||fake2.status===404) return fake2;
+    if(fake2.ok) return fake2;
+  }catch(e){ console.warn('[ADO] corsproxy failed:', e.message); }
+
+  /* ── Attempt 3: cors-anywhere proxy ── */
+  try{
+    var p3 = 'https://cors-anywhere.herokuapp.com/'+url;
+    var h3 = Object.assign({}, hdrs, {'X-Requested-With':'XMLHttpRequest'});
+    var r3 = await fetch(p3, {method:opts.method||'GET', headers:h3, body:body, mode:'cors'});
+    var txt3 = await r3.text();
+    console.log('[ADO] cors-anywhere ->', r3.status, txt3.slice(0,60));
+    if(txt3.trimStart().startsWith('<')) throw new Error('proxy returned HTML');
+    var fake3 = fakeResp(txt3, r3.status);
+    if(fake3.status===401||fake3.status===403||fake3.status===404) return fake3;
+    if(fake3.ok) return fake3;
+  }catch(e){ console.warn('[ADO] cors-anywhere failed:', e.message); }
+
+  /* ── Attempt 4: proxy.cors.sh ── */
+  try{
+    var p4 = 'https://proxy.cors.sh/'+url;
+    var h4 = Object.assign({}, hdrs, {'x-cors-api-key':'temp_'+(Date.now())});
+    var r4 = await fetch(p4, {method:opts.method||'GET', headers:h4, body:body, mode:'cors'});
+    var txt4 = await r4.text();
+    console.log('[ADO] cors.sh ->', r4.status, txt4.slice(0,60));
+    if(txt4.trimStart().startsWith('<')) throw new Error('proxy returned HTML');
+    var fake4 = fakeResp(txt4, r4.status);
+    if(fake4.status===401||fake4.status===403||fake4.status===404) return fake4;
+    if(fake4.ok) return fake4;
+  }catch(e){ console.warn('[ADO] cors.sh failed:', e.message); }
+
+  throw new Error('All proxies failed — check browser console (F12) for details');
+}
+function adoBase(){return'https://dev.azure.com/'+enc(S.org);}
+
+var orgDebounce=null;
+// Project is fixed to TaxProf — no project dropdown needed
+function onOrgInput(){
+  S.org=G('inOrg').value.trim();
+  clearTimeout(orgDebounce);
+  S.project='TaxProf';
+  var orgEl=G('inOrg');
+  var invalid=/[^a-z0-9\-]/i.test(S.org)&&S.org.length>0;
+  orgEl.style.borderColor=invalid?'var(--r)':S.org.length>=2?'rgba(0,229,160,.4)':'';
+  markStep(false,false,false);
+}
+
+/* Called when user edits the Area Path text box */
+function onAreaInput(){
+  S.area=G('selArea').value.trim();
+  // Reset release dropdown — user must re-connect or releases auto-reload if connected
+  if(S.connected && S.area){
+    clearTimeout(orgDebounce);
+    orgDebounce=setTimeout(function(){ loadReleases(); },600);
+  }
+}
+
+/* fetchTeamsForTaxProf removed — area path is a plain text input now */
+// Legacy fetchProjects — no longer called but kept for safety
+async function fetchProjects(){ fetchTeamsForTaxProf(); }
+
+// onProjectChange not used — project is fixed to TaxProf
+// Teams are fetched in fetchTeamsForTaxProf() triggered by onOrgInput
+async function onProjectChange(){
+  S.project='TaxProf';
+  await fetchTeamsForTaxProf();
+}
+
+function onTeamChange(){ /* removed — no team dropdown */ }
+/* Recursively flatten ADO classification node tree into full path strings.
+   ADO returns the root node with name = project name (e.g. "TaxProf").
+   We build paths like: TaxProf\surePrep\components\TaxCaddy\surePrep-tcd-elite */
+function flattenAreas(node, parentPath, out){
+  if(!node || !node.name) return;
+  // Build this node's full path
+  var myPath = parentPath ? parentPath + '\\' + node.name : node.name;
+  // Always include every node (including intermediates) so the user sees the full tree
+  out.push(myPath);
+  // Recurse into children
+  if(node.children && node.children.length){
+    node.children.forEach(function(child){ flattenAreas(child, myPath, out); });
+  }
+}
+
+/* ══════════════════════════════════════════
+   TEST CONNECTION
+══════════════════════════════════════════ */
+/* ── Progress bar helpers ── */
+function connProg(pct, label){
+  var bar = G('connProgressBar');
+  var txt = G('connStepTxt');
+  var pctTxt = G('connPctTxt');
+  var wrap = G('connProgressWrap');
+  if(!wrap) return;
+  wrap.classList.add('show');
+  bar.style.width = pct + '%';
+  if(txt) txt.textContent = label || '';
+  if(pctTxt) pctTxt.textContent = pct + '%';
+  if(pct >= 100){
+    bar.classList.add('done');
+  } else {
+    bar.classList.remove('done');
+  }
+}
+function connProgHide(){
+  var wrap = G('connProgressWrap');
+  if(wrap) wrap.classList.remove('show');
+  var bar = G('connProgressBar');
+  if(bar){ bar.style.width='0%'; bar.classList.remove('done'); }
+}
+
+async function testConn(){
+  // Read inputs
+  S.pat  = G('inPat').value.trim();
+  S.org  = G('inOrg').value.trim();
+  S.area = (G('selArea').value||'').trim();
+  S.project = 'TaxProf';
+  S.team = 'TaxProf Team';
+
+  if(!S.pat){ showBox('warn','⚠ Enter your Personal Access Token first.'); return; }
+  if(!S.org){ showBox('warn','⚠ Enter your Organisation Name first.');       return; }
+
+  S.demo=false; S.connected=false;
+  setLed('busy');
+  G('btnTest').disabled=true;
+  G('testIcon').textContent='↻';
+  connProgHide();
+  await new Promise(function(res){setTimeout(res,50);});
+
+  try{
+    /* ── Step 1: verify project exists ── */
+    connProg(15,'Step 1/3  Connecting to Azure DevOps…');
+    showBox('busy','Connecting to https://dev.azure.com/'+S.org+'/TaxProf …');
+
+    var url = 'https://dev.azure.com/'+enc(S.org)+'/_apis/projects/TaxProf?api-version=7.1';
+    var r = await adoFetch(url);
+
+    if(r.status===401){
+      setLed('err'); connProgHide();
+      showBox('err','✗ 401 Unauthorised — PAT rejected.\n\nRequired scopes:\n  Work Items (Read)\n  Test Plans (Read)\n  Project and Team (Read)');
+      return;
+    }
+    if(r.status===403){
+      setLed('err'); connProgHide();
+      showBox('err','✗ 403 Forbidden — PAT does not have permission.\n\nAdd these scopes to your PAT:\n  Work Items (Read)\n  Test Plans (Read)');
+      return;
+    }
+    if(r.status===404){
+      setLed('err'); connProgHide();
+      showBox('err','✗ 404 Not Found — "'+S.org+'" or project "TaxProf" not found.\n\nCheck your Organisation Name exactly as it appears in:\n  https://dev.azure.com/YOUR-ORG');
+      return;
+    }
+    if(!r.ok){
+      setLed('err'); connProgHide();
+      showBox('err','✗ HTTP '+r.status+' — unexpected error.\n\nCheck Organisation Name and PAT.');
+      return;
+    }
+
+    /* ── Step 2: parse project ── */
+    connProg(40,'Step 2/3  Project verified — reading area path…');
+    var proj = await r.json();
+    S.connected = true;
+    setLed('ok');
+    G('connTxt').textContent = 'Connected · '+proj.name;
+    showBox('ok','✓ Connected to '+proj.name+'  |  loading releases…');
+
+    /* ── Step 3: load releases ── */
+    if(S.area){
+      connProg(65,'Step 3/3  Loading releases for area path…');
+      await loadReleases();
+    } else {
+      connProg(100,'✓ Connected — enter an Area Path to load releases');
+      showBox('ok','✓ Connected to '+proj.name+' · enter Area Path to load releases');
+      setTimeout(function(){ connProgHide(); }, 2500);
+    }
+
+  }catch(e){
+    setLed('err'); connProgHide();
+    showBox('err','✗ '+( e.message||String(e)));
+    S.connected=false;
+    console.error('[testConn]', e);
+  }finally{
+    G('btnTest').disabled=false;
+    G('testIcon').textContent='⚡';
+  }
+}
+
+/* ══════════════════════════════════════════
+   LOAD RELEASES INTO CENTER DROPDOWN
+══════════════════════════════════════════ */
+/* Flatten iteration tree nodes into a flat list of {v, l} objects */
+function flattenIterations(node, prefix, out){
+  if(!node) return;
+  var path = prefix ? prefix+'\\'+node.name : node.name;
+  if(node.id) out.push({v: node.id, l: path.replace(/\\/g,'\u005C'), _path: path});
+  if(node.children && node.children.length){
+    node.children.forEach(function(c){ flattenIterations(c, path, out); });
+  }
+}
+
+/* onAreaChange kept as stub — area is now a text input; reloads via onAreaInput */
+function onAreaChange(){
+  S.area = G('selArea').value.trim();
+  if(S.connected && S.area) loadReleases();
+}
+
+async function loadReleases(){
+  if(!S.connected){ return; }
+  show('loadRelease', true);
+  connProg(82, 'Querying Release Management API…');
+
+  var areaPath = S.area;
+
+  try{
+    var releases = [];
+
+    /* ── Strategy 1: Release Management API (vsrm) ────────────────────────
+       Fetches real Release Definitions from Azure DevOps Release Management.
+       These are the named releases like TC_26_Elite_Release_April_10.3.0    */
+    try{
+      // First get all release definitions
+      var rdUrl = 'https://vsrm.dev.azure.com/'+enc(S.org)+'/'+enc(S.project)
+                  +'/_apis/release/releases?$top=100&queryOrder=descending&api-version=7.1';
+      var rd = await adoFetch(rdUrl);
+      if(rd.status===401||rd.status===403){
+        showBox('err','✗ PAT lacks "Release: Read" scope.\nAdd Release (read) permission to your token.');
+        show('loadRelease',false); return;
+      }
+      if(rd.ok){
+        var rdData = await rd.json();
+        var allReleases = rdData.value||[];
+        console.log('[releases] vsrm returned', allReleases.length, 'releases');
+
+        // Filter by area path if set — match on release name or environment name
+        var areaLeaf = areaPath ? areaPath.split('\\').pop().toLowerCase() : '';
+        releases = allReleases
+          .filter(function(r){
+            if(!areaLeaf) return true;
+            var name = (r.name||'').toLowerCase();
+            var defName = (r.releaseDefinition&&r.releaseDefinition.name||'').toLowerCase();
+            // Include if name contains any part of the area leaf or TaxCaddy-specific tags
+            return name.includes(areaLeaf) || defName.includes(areaLeaf) ||
+                   name.includes('taxcaddy') || name.includes('tc_') ||
+                   name.includes('elite') || name.includes('taxprof');
+          })
+          .map(function(r){
+            return {
+              v: String(r.id),
+              l: r.name||('Release '+r.id),
+              _name: r.name||'',
+              _defName: r.releaseDefinition&&r.releaseDefinition.name||'',
+              _status: r.status||''
+            };
+          });
+
+        // If area filter gave 0 results, show all releases
+        if(!releases.length && allReleases.length){
+          releases = allReleases.map(function(r){
+            return {v:String(r.id), l:r.name||('Release '+r.id), _name:r.name||'', _status:r.status||''};
+          });
+        }
+        console.log('[releases] after area filter:', releases.length);
+      }
+    }catch(e1){ console.warn('[releases] vsrm strategy failed:', e1.message); }
+
+    connProg(88, 'Trying release definitions…');
+    /* ── Strategy 2: Release Definitions (not instances) ─────────────────
+       Lists release pipeline definitions — useful when no release instances exist yet */
+    if(!releases.length){
+      try{
+        var defUrl = 'https://vsrm.dev.azure.com/'+enc(S.org)+'/'+enc(S.project)
+                     +'/_apis/release/definitions?$top=100&api-version=7.1';
+        var defR = await adoFetch(defUrl);
+        if(defR.ok){
+          var defData = await defR.json();
+          var defs = defData.value||[];
+          console.log('[releases] definitions returned', defs.length);
+          var areaLeaf2 = areaPath ? areaPath.split('\\').pop().toLowerCase() : '';
+          releases = defs
+            .filter(function(d){
+              if(!areaLeaf2) return true;
+              var n=(d.name||'').toLowerCase();
+              return n.includes(areaLeaf2)||n.includes('taxcaddy')||n.includes('tc_')||n.includes('elite');
+            })
+            .map(function(d){
+              return {v:'def_'+d.id, l:d.name||('Definition '+d.id), _name:d.name||''};
+            });
+          if(!releases.length) releases = defs.map(function(d){return{v:'def_'+d.id,l:d.name||('Def '+d.id),_name:d.name||''};});
+        }
+      }catch(e2){ console.warn('[releases] definitions strategy failed:', e2.message); }
+    }
+
+    connProg(92, 'Scanning work item tags for releases…');
+    /* ── Strategy 3: WIQL distinct Tags/Release fields ───────────────────
+       Fallback — look for work items with Tags that look like release names */
+    if(!releases.length && areaPath){
+      try{
+        var wUrl = 'https://dev.azure.com/'+enc(S.org)+'/'+enc(S.project)+'/_apis/wit/wiql?api-version=7.1';
+        var wBody = JSON.stringify({query:
+          "SELECT [System.Id],[System.Tags],[System.IterationPath] FROM WorkItems "+
+          "WHERE [System.TeamProject]='"+S.project+"' "+
+          "AND [System.AreaPath] UNDER '"+areaPath+"' "+
+          "ORDER BY [System.ChangedDate] DESC"
+        });
+        var wr = await adoFetch(wUrl,{method:'POST',body:wBody});
+        if(wr.ok){
+          var wd = await wr.json();
+          var wids2 = (wd.workItems||[]).slice(0,200).map(function(w){return w.id;});
+          if(wids2.length){
+            var bUrl2='https://dev.azure.com/'+enc(S.org)+'/'+enc(S.project)
+              +'/_apis/wit/workitems?ids='+wids2.join(',')+'&fields=System.Tags,System.IterationPath&api-version=7.1';
+            var br = await adoFetch(bUrl2);
+            if(br.ok){
+              var bd = await br.json();
+              var seen={};
+              (bd.value||[]).forEach(function(wi){
+                var tags=(wi.fields['System.Tags']||'').split(';');
+                tags.forEach(function(t){
+                  t=t.trim();
+                  if(t && /release|tc_|sprint/i.test(t) && !seen[t]){
+                    seen[t]=true; releases.push({v:t,l:t,_name:t});
+                  }
+                });
+                var ip=wi.fields['System.IterationPath']||'';
+                if(ip && !seen[ip]){ seen[ip]=true; releases.push({v:ip,l:ip,_name:ip}); }
+              });
+            }
+          }
+        }
+      }catch(e3){ console.warn('[releases] WIQL tags strategy failed:', e3.message); }
+    }
+
+    if(!releases.length){
+      showBox('err','✗ No releases found for area path:\n  '+(areaPath||'(none)')+
+        '\n\nMake sure your PAT has:\n  • Release: Read\n  • Work Items: Read'
+      );
+      show('loadRelease',false); return;
+    }
+
+    populateSelect('selRelease', releases.map(function(r){return{v:r.v,l:r.l};}), '— select release —', false);
+    G('selRelease').disabled = false;
+    G('btnPull').disabled = false;
+
+    connProg(100, '✓ '+releases.length+' releases loaded — ready!');
+    showBox('ok','✓ Connected & ready · '+releases.length+' releases loaded');
+    setTimeout(function(){ connProgHide(); }, 2000);
+    markFilterSteps();
+    S.demo = false;
+  }catch(e){
+    connProgHide();
+    showBox('err','✗ Failed to load releases: '+(e.message||e));
+    console.error('[loadReleases]', e);
+  }
+  finally{ show('loadRelease',false); }
+}
+
+function loadReleasesDemo(){
+  S.demo=true;
+  populateSelect('selRelease',DEMO.releases.map(function(r){return{v:r.id,l:r.name};}),null,false);
+  G('selRelease').disabled=false;G('btnPull').disabled=false;
+  markFilterSteps();
+}
+
+function onRelChange(){
+  var v=G('selRelease').value;
+  if(!v)return;
+  S.relId=v;
+  var selEl=G('selRelease');
+  var label=selEl.options[selEl.selectedIndex].text;
+  S.relName=label;
+  // relPath = the IterationPath string to use in WIQL
+  // If v looks like a GUID (36 chars with dashes) use the label, otherwise v IS the path
+  var isGuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+  S.relPath = isGuid ? label : v;
+  var rel=S.demo?DEMO.releases.find(function(r){return r.id===v;}):null;
+  var rc2=G('racCard');if(rc2){rc2.className='fb-rel-card show';}
+  G('racName').textContent=S.relName;
+  G('racMeta').textContent=rel?('Sprint: '+rel.sprint+' · v'+rel.ver):'Select and pull data';
+  G('tbRelBadge').textContent=S.relName.slice(0,20)+(S.relName.length>20?'…':'');G('tbRelBadge').style.display='';
+  if(rel){G('tbSprintBadge').textContent=rel.sprint;G('tbSprintBadge').style.display='';}
+  // Pre-populate story/tc/def dropdowns for demo
+  if(S.demo){prePopFilters(v);}
+}
+
+function prePopFilters(relId){
+  var D=DEMO.DB[relId]; if(!D)return;
+  // Stories
+  populateSelect('selStory',D.stories.map(function(s){return{v:s.id,l:s.id+' — '+s.title.slice(0,30)+'…'};}),null,true);
+  // TCs
+  populateSelect('selTC',Object.keys(D.tcs).map(function(id){return{v:id,l:id+' — '+D.tcs[id].name.slice(0,30)+'…'};}),null,true);
+  // Defects
+  populateSelect('selDef',D.defects.map(function(d){return{v:d.id,l:d.id+' — '+d.title.slice(0,30)+'…'};}),null,true);
+  G('selStory').disabled=false;G('selTC').disabled=false;G('selDef').disabled=false;
+  markFilterSteps();
+}
+
+/* ══════════════════════════════════════════
+   PULL DATA
+══════════════════════════════════════════ */
+async function pullData(){
+  var relId=G('selRelease').value;
+  if(!relId){showBox('warn','Select a release first.');return;}
+  G('btnPull').disabled=true;G('pullIcon').textContent='↻';
+  showProg(true,5,'Initialising…');
+  try{
+    if(S.demo){await pullDemo(relId);}
+    else{await pullADO(relId);}
+    applyFilters();
+    renderAll();
+    G('btnCsv').disabled=false;
+  }catch(e){showBox('err','Pull failed: '+(e.message||e));}
+  finally{G('btnPull').disabled=false;G('pullIcon').textContent='▶';showProg(false);}
+}
+
+async function pullDemo(relId){
+  var D=DEMO.DB[relId];if(!D)throw new Error('No demo data for this release');
+  setProg(20,'Building stories…');
+  S.stories=D.stories.map(function(s){
+    var tcFull=s.tcs.map(function(id){return D.tcs[id]?Object.assign({id:id},D.tcs[id]):null;}).filter(Boolean);
+    var p=tcFull.filter(function(t){return t.status==='pass';}).length;
+    return Object.assign({},s,{coverage:tcFull.length?Math.round(p/tcFull.length*100):0,passCount:p,failCount:tcFull.filter(function(t){return t.status==='fail';}).length});
+  });
+  setProg(55,'Building test cases…');
+  S.tcs=[];
+  Object.entries(D.tcs).forEach(function(e){
+    var storyId=(D.stories.find(function(s){return s.tcs.includes(e[0]);})||{}).id||'—';
+    S.tcs.push(Object.assign({id:e[0],storyId:storyId},e[1]));
+  });
+  setProg(80,'Building defects…');
+  S.defects=D.defects.map(function(d){return Object.assign({},d);});
+  setProg(100,'Complete!');
+}
+
+async function pullADO(relId){
+  setProg(10,'Querying work items for release…');
+  var areaClause=S.area?" AND [System.AreaPath] UNDER '"+S.area+"'":"";
+
+  /* Determine filter type:
+     - If relId starts with 'def_' → it's a release definition ID
+     - If relId is a pure integer string → it's a vsrm Release instance ID
+     - Otherwise → treat as iteration path / tag name                        */
+  var isVsrmId = /^\d+$/.test(relId);
+  var isDefId  = relId.startsWith('def_');
+  var iterFilter = '';
+  var tagFilter  = '';
+
+  if(isVsrmId){
+    /* Fetch the vsrm release to get its artifact tags/build info,
+       then use tags or release name to filter WIQL                         */
+    try{
+      var vsrmUrl = 'https://vsrm.dev.azure.com/'+enc(S.org)+'/'+enc(S.project)
+                    +'/_apis/release/releases/'+relId+'?api-version=7.1';
+      var rv = await adoFetch(vsrmUrl);
+      if(rv.ok){
+        var vsrmRel = await rv.json();
+        // Use the release name as a tag filter
+        var rName = vsrmRel.name||S.relName||'';
+        // Common pattern: TC_26_Elite_Release_April_10.3.0 → tag or release name match
+        tagFilter = " AND ([System.Tags] CONTAINS '"+rName+"' OR [System.Tags] CONTAINS '"+relId+"')";
+      }
+    }catch(ve){ console.warn('[pullADO] vsrm release fetch failed:', ve.message); }
+    // Primary filter: area path scoped, no iteration restriction (release spans iterations)
+    iterFilter = '';
+  } else if(isDefId){
+    iterFilter = ''; // definition-based: just filter by area
+  } else {
+    // Iteration path or tag value stored in relId
+    iterFilter = " AND [System.IterationPath] UNDER '"+relId+"'";
+  }
+
+  var wiq={query:"SELECT [System.Id],[System.Title],[System.State],[System.IterationPath],[Microsoft.VSTS.Common.Priority],[System.AssignedTo],[System.Tags] FROM WorkItems WHERE [System.TeamProject]='"+S.project+"' AND [System.WorkItemType]='User Story'"+(tagFilter||iterFilter)+areaClause};
+  var r1=await adoFetch(adoBase()+'/'+enc(S.project)+'/_apis/wit/wiql?api-version=7.1',{method:'POST',body:JSON.stringify(wiq)});
+  if(!r1.ok)throw new Error('WIQL HTTP '+r1.status);
+  var wd=await r1.json();
+  var ids=(wd.workItems||[]).map(function(w){return w.id;});
+  setProg(30,'Loading '+ids.length+' stories…');
+  S.stories=[];
+  if(ids.length){
+    var r2=await adoFetch(adoBase()+'/'+enc(S.project)+'/_apis/wit/workitems?ids='+ids.slice(0,200).join(',')+'&fields=System.Id,System.Title,System.State,System.AreaPath,Microsoft.VSTS.Common.Priority,System.AssignedTo,System.Tags&api-version=7.1');
+    if(r2.ok){var wd2=await r2.json();(wd2.value||[]).forEach(function(w){S.stories.push({id:'US-'+w.id,adoId:w.id,title:w.fields['System.Title']||'(no title)',state:w.fields['System.State']||'Unknown',pri:'P'+(w.fields['Microsoft.VSTS.Common.Priority']||3),epic:w.fields['System.AreaPath']||'',who:xName(w.fields['System.AssignedTo']),tcs:[],defs:[],coverage:0,passCount:0,failCount:0});});}
+  }
+  setProg(50,'Loading test cases…');S.tcs=[];
+  for(var i=0;i<Math.min(S.stories.length,50);i++){
+    try{var rt=await adoFetch(adoBase()+'/'+enc(S.project)+'/_apis/test/testcases?workItemId='+S.stories[i].adoId+'&api-version=7.1-preview');if(rt.ok){var td=await rt.json();(td.testCases||td.value||[]).forEach(function(tc){var obj={id:'TC-'+tc.id,adoId:tc.id,name:tc.name||tc.title||'TC '+tc.id,storyId:S.stories[i].id,type:tc.testCaseType||'Manual',pri:'P'+(tc.priority||3),status:mapSt(tc.outcome||tc.status||''),who:xName(tc.assignedTo||tc.tester),envs:['DEV'],dur:tc.duration||'—',defs:[]};S.tcs.push(obj);S.stories[i].tcs.push(obj.id);});}}catch(e){}
+    setProg(50+Math.round(i/Math.max(S.stories.length,1)*20));
+  }
+  setProg(75,'Loading defects…');S.defects=[];
+  var wiq2={query:"SELECT [System.Id],[System.Title],[System.State],[Microsoft.VSTS.Common.Severity],[Microsoft.VSTS.Common.Priority],[System.AssignedTo],[System.CreatedDate] FROM WorkItems WHERE [System.TeamProject]='"+S.project+"' AND [System.WorkItemType]='Bug'"+(tagFilter||iterFilter)+areaClause};
+  var r3=await adoFetch(adoBase()+'/'+enc(S.project)+'/_apis/wit/wiql?api-version=7.1',{method:'POST',body:JSON.stringify(wiq2)});
+  if(r3.ok){var dw=await r3.json();var dids=(dw.workItems||[]).map(function(w){return w.id;});if(dids.length){var r4=await adoFetch(adoBase()+'/'+enc(S.project)+'/_apis/wit/workitems?ids='+dids.slice(0,200).join(',')+'&fields=System.Id,System.Title,System.State,Microsoft.VSTS.Common.Severity,Microsoft.VSTS.Common.Priority,System.AssignedTo,System.CreatedDate,System.AreaPath&api-version=7.1');if(r4.ok){var dd=await r4.json();(dd.value||[]).forEach(function(d){S.defects.push({id:'DEF-'+d.id,adoId:d.id,title:d.fields['System.Title']||'(no title)',sev:mapSev(d.fields['Microsoft.VSTS.Common.Severity']||''),state:d.fields['System.State']||'Active',pri:'P'+(d.fields['Microsoft.VSTS.Common.Priority']||3),who:xName(d.fields['System.AssignedTo']),env:'—',story:'—',tc:'—',created:(d.fields['System.CreatedDate']||'').slice(0,10)});});}}}
+  S.stories.forEach(function(s){var tp=s.tcs.map(function(id){return S.tcs.find(function(t){return t.id===id;});}).filter(Boolean);var p=tp.filter(function(t){return t.status==='pass';}).length;s.coverage=tp.length?Math.round(p/tp.length*100):0;s.passCount=p;s.failCount=tp.filter(function(t){return t.status==='fail';}).length;});
+  setProg(100,'Done!');
+}
+
+/* ══════════════════════════════════════════
+   APPLY DROPDOWN FILTERS
+══════════════════════════════════════════ */
+function applyFilters(){
+  var sf=G('selStory').value,tf=G('selTC').value,df=G('selDef').value;
+  S.fStories=S.stories.filter(function(s){
+    if(sf&&s.id!==sf)return false;
+    if(tf&&!s.tcs.includes(tf))return false;
+    if(df&&!s.defs.includes(df))return false;
+    return true;
+  });
+  S.fTCs=S.tcs.filter(function(t){
+    if(tf&&t.id!==tf)return false;
+    if(sf){var st=S.fStories.find(function(s){return s.tcs.includes(t.id);});if(!st)return false;}
+    if(df&&!(t.defs||[]).includes(df))return false;
+    return true;
+  });
+  S.fDefects=S.defects.filter(function(d){
+    if(df&&d.id!==df)return false;
+    if(sf&&d.story!==sf)return false;
+    if(tf&&d.tc!==tf)return false;
+    return true;
+  });
+}
+
+/* ══════════════════════════════════════════
+   RENDER ALL
+══════════════════════════════════════════ */
+function renderAll(){
+  updateKPIs();renderTrace();renderTCs();renderDefs();renderSummary();
+  G('kpiStrip').className='kpi-strip show';G('tabBar').className='tab-bar show';
+  G('dashTitle').textContent=S.relName||'Traceability Matrix';
+}
+
+function updateKPIs(){
+  var tcs=S.fTCs,defs=S.fDefects,sts=S.fStories;
+  var pass=tcs.filter(function(t){return t.status==='pass';}).length;
+  var fail=tcs.filter(function(t){return t.status==='fail';}).length;
+  var tot=tcs.length||1;
+  var pct=Math.round(pass/tot*100);
+  var openD=defs.filter(function(d){return d.state!=='Resolved';}).length;
+  var critD=defs.filter(function(d){return d.sev==='crit';}).length;
+  var cov=sts.length?Math.round(sts.filter(function(s){return s.tcs&&s.tcs.length>0;}).length/sts.length*100):0;
+  G('kn0').textContent=sts.length;G('ks0').innerHTML='<span class="ok">'+sts.filter(function(s){return s.state==='Done';}).length+'</span> done · <span class="warn">'+sts.filter(function(s){return s.state!=='Done';}).length+'</span> open';
+  G('kn1').textContent=tcs.length;G('ks1').innerHTML='<span class="ok">'+pass+'</span> pass · <span class="bad">'+fail+'</span> fail';
+  G('kn2').textContent=pct+'%';G('ks2').innerHTML=pct>=80?'<span class="ok">✓ On Track</span>':'<span class="bad">⚠ Below 80%</span>';
+  G('kn3').textContent=defs.length;G('ks3').innerHTML='<span class="bad">'+critD+'</span> crit · <span class="warn">'+openD+'</span> open';
+  G('kn4').textContent=cov+'%';G('ks4').innerHTML='<span class="ok">'+sts.filter(function(s){return s.defs&&s.defs.length===0&&s.state==='Done';}).length+'</span> clean';
+  G('ctTrace').textContent=sts.length;G('ctTCs').textContent=tcs.length;G('ctDefs').textContent=defs.length;
+}
+
+function renderTrace(){
+  var rows=S.fStories;
+  if(S.qf!=='all') rows=rows.filter(function(s){return s.tcs.some(function(id){var t=S.tcs.find(function(x){return x.id===id;});return t&&t.status===S.qf;});});
+  G('emTrace').style.display=rows.length?'none':'';
+  var w=G('traceWrap');w.style.display=rows.length?'flex':'none';
+  G('rcTrace').textContent=rows.length+' stories';
+  var h='';
+  rows.forEach(function(s){
+    var tAll=(s.tcs||[]).map(function(id){return S.tcs.find(function(t){return t.id===id;});}).filter(Boolean);
+    var tAuto=tAll.filter(function(t){return t.type==='E2E'||t.type==='Integration'||t.type==='Unit'||t.type==='Security';});
+    var tMan=tAll.filter(function(t){return t.type==='Manual';});
+    var cc=s.coverage>=85?'var(--g)':s.coverage>=65?'var(--o)':'var(--r)';
+    var mH=tAll.map(function(t){return'<span class="tcp '+t.status+'" data-tip="'+t.id+': '+t.name+'">'+t.id+'</span>';}).join('');
+    var aH=tAuto.length?tAuto.map(function(t){return'<span class="tcp '+t.status+'" data-tip="'+t.id+' ['+t.type+']">'+t.id+'</span>';}).join(''):'<span style="color:var(--tx3);font-size:9px">—</span>';
+    var dH=(s.defs||[]).length?(s.defs||[]).map(function(did){var d=S.defects.find(function(x){return x.id===did;});if(!d)return'';return'<span class="dtag '+d.sev+'" data-tip="'+d.id+': '+d.title+'"><span class="ddot"></span>'+d.id+'</span>';}).join(''):'<span style="color:var(--tx3);font-size:9px">—</span>';
+    var envs=[]; tAll.forEach(function(t){(t.envs||[]).forEach(function(e){if(!envs.includes(e))envs.push(e);});});
+    var eH=envs.map(function(e){return'<span class="envc '+e+'">'+e.toUpperCase()+'</span>';}).join('');
+    var sc=s.state==='Done'?'pass':s.state==='Testing'?'inprogress':s.state==='In Progress'?'inprogress':'skip';
+    h+='<tr onclick="togE(\'exp-'+s.id+'\',this)" class=""><td><span class="sid">'+s.id+'</span><div class="stitle">'+esc(s.title)+'</div><div class="sepic">'+esc(s.epic||'')+'</div></td>'
+      +'<td><div class="tc-row">'+mH+'</div></td>'
+      +'<td><div class="tc-row">'+aH+'</div></td>'
+      +'<td><div class="cov-cell"><span class="covv" style="color:'+cc+'">'+s.coverage+'%</span><div class="covb"><div class="covf" style="width:'+s.coverage+'%;background:'+cc+'"></div></div></div></td>'
+      +'<td><div class="tc-row">'+dH+'</div></td>'
+      +'<td><div class="env-row">'+eH+'</div></td>'
+      +'<td><span class="sbadge '+sc+'"><span class="sdot"></span>'+s.state+'</span></td>'
+      +'</tr>'
+      +'<tr class="exp-row"><td colspan="7"><div class="exp-content" id="exp-'+s.id+'">'
+      +'<div class="exp-grid">'
+      +'<div class="exp-col"><h5>Test Cases ('+tAll.length+')</h5>'+tAll.map(function(t){return'<div class="exp-item"><span class="exp-n">'+t.type.slice(0,2)+'</span><span><b>'+t.id+'</b> — '+esc(t.name)+' <span class="sbadge '+t.status+'" style="font-size:7px;padding:1px 4px">'+t.status+'</span></span></div>';}).join('')+'</div>'
+      +'<div class="exp-col"><h5>Defects ('+(s.defs||[]).length+')</h5>'+(s.defs||[]).map(function(did){var d=S.defects.find(function(x){return x.id===did;});if(!d)return'';return'<div class="exp-item"><span class="ddot" style="width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0;background:'+(d.sev==='crit'?'var(--r)':d.sev==='high'?'var(--o)':'var(--tx3)')+'"></span><span><b>'+d.id+'</b> — '+esc(d.title)+'</span></div>';}).join('')+'</div>'
+      +'<div class="exp-col"><h5>Story Details</h5>'+[['Assignee',s.who||'—'],['Priority',s.pri],['State',s.state],['Epic',s.epic||'—'],['Coverage',s.coverage+'%'],['Pass',s.passCount||0],['Fail',s.failCount||0]].map(function(kv){return'<div style="display:flex;justify-content:space-between;font-size:10px;font-family:var(--mono);margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--w1)"><span style="color:var(--tx3)">'+kv[0]+'</span><span style="color:var(--tx2)">'+kv[1]+'</span></div>';}).join('')+'</div>'
+      +'</div></div></td></tr>';
+  });
+  G('traceTbody').innerHTML=h;
+}
+
+function renderTCs(){
+  var rows=S.fTCs;
+  G('emTCs').style.display=rows.length?'none':'';
+  var w=G('tcsWrap');w.style.display=rows.length?'flex':'none';
+  G('rcTCs').textContent=rows.length+' TCs';
+  var counts={pass:0,fail:0,skip:0,block:0,notrun:0,inprogress:0};
+  rows.forEach(function(t){counts[t.status]=(counts[t.status]||0)+1;});
+  G('tcPills').innerHTML=Object.entries(counts).filter(function(e){return e[1]>0;}).map(function(e){return'<span class="tcp '+e[0]+'" style="cursor:default">'+e[0]+' ('+e[1]+')</span>';}).join('');
+  var h='';
+  rows.forEach(function(t){
+    var eH=(t.envs||[]).map(function(e){return'<span class="envc '+e+'">'+e.toUpperCase()+'</span>';}).join('');
+    var dH=(t.defs||[]).length?(t.defs||[]).map(function(d){return'<span class="dtag crit">'+d+'</span>';}).join(''):'<span style="color:var(--tx3);font-size:9px">—</span>';
+    var ac=sColor(t.who||'');
+    h+='<tr><td><span class="sid" style="color:var(--g);background:var(--gg);border-color:var(--gb)">'+t.id+'</span></td>'
+      +'<td><div class="stitle">'+esc(t.name||'')+'</div></td>'
+      +'<td><span style="font-family:var(--mono);font-size:8px;color:var(--tx3);background:var(--p2);padding:2px 5px;border-radius:3px">'+t.type+'</span></td>'
+      +'<td><span class="pri '+(t.pri==='P1'?'p1':t.pri==='P2'?'p2':'p3')+'">'+t.pri+'</span></td>'
+      +'<td><span class="sbadge '+(t.status||'notrun')+'"><span class="sdot"></span>'+t.status+'</span></td>'
+      +'<td><span class="av" style="background:'+ac+'22;color:'+ac+';border-color:'+ac+'44">'+ini(t.who)+'</span> <span style="font-size:11px">'+esc(t.who||'—')+'</span></td>'
+      +'<td><span class="sid">'+esc(t.storyId||'—')+'</span></td>'
+      +'<td><div class="env-row">'+eH+'</div></td>'
+      +'<td><span style="font-family:var(--mono);font-size:9px;color:var(--tx3)">'+esc(t.dur||'—')+'</span></td>'
+      +'<td>'+dH+'</td></tr>';
+  });
+  G('tcsTbody').innerHTML=h;
+}
+
+function renderDefs(){
+  var rows=S.fDefects;
+  G('emDefs').style.display=rows.length?'none':'';
+  var w=G('defsWrap');w.style.display=rows.length?'flex':'none';
+  G('rcDefs').textContent=rows.length+' defects';
+  var sevOrd={crit:0,high:1,med:2,low:3};
+  var sorted=rows.slice().sort(function(a,b){return (sevOrd[a.sev]||2)-(sevOrd[b.sev]||2);});
+  var sevLbl={crit:'Critical',high:'High',med:'Medium',low:'Low'};
+  var h='';
+  sorted.forEach(function(d){
+    var sc=d.sev==='crit'?'crit':d.sev==='high'?'high':'med';
+    var stK=d.state==='Active'?'Active':d.state==='Resolved'?'Resolved':'inprog2';
+    var ac=sColor(d.who||'');
+    h+='<tr data-sev="'+d.sev+'"><td><span class="sid" style="color:var(--r);background:var(--rg);border-color:var(--rb)">'+d.id+'</span></td>'
+      +'<td><div class="stitle">'+esc(d.title||'')+'</div></td>'
+      +'<td><span class="dtag '+sc+'"><span class="ddot"></span>'+(sevLbl[d.sev]||d.sev)+'</span></td>'
+      +'<td><span class="pri '+(d.pri==='P1'?'p1':d.pri==='P2'?'p2':'p3')+'">'+d.pri+'</span></td>'
+      +'<td><span class="sbadge '+stK+'"><span class="sdot"></span>'+d.state+'</span></td>'
+      +'<td><span class="sid">'+esc(d.story||'—')+'</span></td>'
+      +'<td><span style="font-family:var(--mono);font-size:9px;color:var(--tx3)">'+esc(d.tc||'—')+'</span></td>'
+      +'<td><span class="av" style="background:'+ac+'22;color:'+ac+';border-color:'+ac+'44">'+ini(d.who)+'</span> <span style="font-size:11px">'+esc(d.who||'—')+'</span></td>'
+      +'<td>'+(d.env?'<span class="envc '+(d.env.toLowerCase())+'">'+d.env+'</span>':'—')+'</td>'
+      +'<td><span style="font-family:var(--mono);font-size:9px;color:var(--tx3)">'+esc(d.created||'—')+'</span></td>'
+      +'</tr>';
+  });
+  G('defsTbody').innerHTML=h;
+}
+
+function renderSummary(){
+  G('emSum').style.display='none';
+  var w=G('sumWrap');w.style.display='flex';
+  var tcs=S.fTCs,defs=S.fDefects,sts=S.fStories;
+  var pass=tcs.filter(function(t){return t.status==='pass';}).length;
+  var fail=tcs.filter(function(t){return t.status==='fail';}).length;
+  var skip=tcs.filter(function(t){return t.status==='skip';}).length;
+  var block=tcs.filter(function(t){return t.status==='block';}).length;
+  var notrun=tcs.filter(function(t){return t.status==='notrun'||t.status==='inprogress';}).length;
+  var tot=tcs.length||1;
+  var crit=defs.filter(function(d){return d.sev==='crit';}).length;
+  var high=defs.filter(function(d){return d.sev==='high';}).length;
+  var med=defs.filter(function(d){return d.sev==='med';}).length;
+  var openD=defs.filter(function(d){return d.state!=='Resolved';}).length;
+  var resolvedD=defs.filter(function(d){return d.state==='Resolved';}).length;
+  var dc=201;
+  var pa=Math.round(pass/tot*dc),fa=Math.round(fail/tot*dc),sa=dc-pa-fa;
+  var epicMap={};
+  sts.forEach(function(s){var e=s.epic||'Other';if(!epicMap[e])epicMap[e]={stories:0,total:0,pass:0,fail:0};epicMap[e].stories++;(s.tcs||[]).forEach(function(id){var t=S.tcs.find(function(x){return x.id===id;});if(!t)return;epicMap[e].total++;if(t.status==='pass')epicMap[e].pass++;else if(t.status==='fail')epicMap[e].fail++;});});
+  var envMap={};
+  tcs.forEach(function(t){(t.envs||['dev']).forEach(function(e){if(!envMap[e])envMap[e]={total:0,pass:0,fail:0};envMap[e].total++;if(t.status==='pass')envMap[e].pass++;else if(t.status==='fail')envMap[e].fail++;});});
+  w.innerHTML=
+  '<div class="sum-card fin">'
+  +'<div class="sum-card-h"><span class="sum-card-t">📋 Release · '+esc(S.relName||'—')+'</span></div>'
+  +'<div class="sum-card-b"><div class="sum4">'
+  +'<div class="mst ca"><div class="mstn">'+sts.length+'</div><div class="mstl">Stories</div></div>'
+  +'<div class="mst cg"><div class="mstn">'+tcs.length+'</div><div class="mstl">Test Cases</div></div>'
+  +'<div class="mst cr"><div class="mstn">'+defs.length+'</div><div class="mstl">Defects</div></div>'
+  +'<div class="mst co"><div class="mstn">'+Math.round(pass/tot*100)+'%</div><div class="mstl">Pass Rate</div></div>'
+  +'</div></div></div>'
+
+  +'<div class="sum2 fin">'
+  +'<div class="sum-card"><div class="sum-card-h"><span class="sum-card-t">✅ TC Status</span></div><div class="sum-card-b"><div class="donut-w">'
+  +'<svg width="84" height="84" viewBox="0 0 84 84"><circle cx="42" cy="42" r="32" fill="none" stroke="var(--p2)" stroke-width="12"/>'
+  +'<circle cx="42" cy="42" r="32" fill="none" stroke="var(--g)" stroke-width="12" stroke-dasharray="'+pa+' '+(dc-pa)+'" stroke-dashoffset="0" transform="rotate(-90 42 42)"/>'
+  +'<circle cx="42" cy="42" r="32" fill="none" stroke="var(--r)" stroke-width="12" stroke-dasharray="'+fa+' '+(dc-fa)+'" stroke-dashoffset="'+(-pa)+'" transform="rotate(-90 42 42)"/>'
+  +'<circle cx="42" cy="42" r="32" fill="none" stroke="var(--o)" stroke-width="12" stroke-dasharray="'+sa+' '+(dc-sa)+'" stroke-dashoffset="'+(-pa-fa)+'" transform="rotate(-90 42 42)"/>'
+  +'<text x="42" y="46" text-anchor="middle" fill="var(--tx)" font-size="12" font-weight="700" font-family="Cabinet Grotesk,sans-serif">'+Math.round(pass/tot*100)+'%</text>'
+  +'</svg>'
+  +'<div class="dleg">'
+  +'<div class="dlr"><div class="dld" style="background:var(--g)"></div>Pass<span class="dlc">'+pass+'</span></div>'
+  +'<div class="dlr"><div class="dld" style="background:var(--r)"></div>Fail<span class="dlc">'+fail+'</span></div>'
+  +'<div class="dlr"><div class="dld" style="background:var(--o)"></div>Skip<span class="dlc">'+skip+'</span></div>'
+  +'<div class="dlr"><div class="dld" style="background:var(--v)"></div>Block<span class="dlc">'+block+'</span></div>'
+  +'<div class="dlr"><div class="dld" style="background:var(--tx3)"></div>Not Run<span class="dlc">'+notrun+'</span></div>'
+  +'</div></div></div></div>'
+
+  +'<div class="sum-card"><div class="sum-card-h"><span class="sum-card-t">🐛 Defect Severity</span></div><div class="sum-card-b">'
+  +[['Critical',crit,'var(--r)'],['High',high,'var(--o)'],['Medium',med,'var(--a)']].map(function(r){var p2=defs.length?Math.round(r[1]/defs.length*100):0;return'<div class="brow"><span class="blow">'+r[0]+'</span><div class="btrk"><div class="bfil" style="width:'+p2+'%;background:'+r[2]+'"></div></div><span class="bval" style="color:'+r[2]+'">'+r[1]+'</span></div>';}).join('')
+  +'<div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;margin-top:10px">'
+  +'<span style="color:var(--r)">Open: '+openD+'</span><span style="color:var(--g)">Resolved: '+resolvedD+'</span>'
+  +'</div></div></div></div>'
+
+  +'<div class="sum-card fin"><div class="sum-card-h"><span class="sum-card-t">📊 Epic Coverage</span></div><div class="sum-card-b">'
+  +Object.entries(epicMap).map(function(e){var p2=e[1].total?Math.round(e[1].pass/e[1].total*100):0;var c2=p2>=80?'var(--g)':p2>=50?'var(--o)':'var(--r)';return'<div class="brow"><span class="blow" style="width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+e[0]+'">'+e[0]+'</span><div class="btrk"><div class="bfil" style="width:'+p2+'%;background:'+c2+'"></div></div><span class="bval" style="color:'+c2+'">'+p2+'%</span></div>';}).join('')
+  +'</div></div>'
+
+  +'<div class="sum-card fin"><div class="sum-card-h"><span class="sum-card-t">🌐 Environment Pass Rate</span></div><div class="sum-card-b">'
+  +Object.entries(envMap).map(function(e){var p2=e[1].total?Math.round(e[1].pass/e[1].total*100):0;var c2=p2>=90?'var(--g)':p2>=70?'var(--o)':'var(--r)';return'<div class="brow"><span class="blow" style="width:56px">'+e[0].toUpperCase()+'</span><div class="btrk"><div class="bfil" style="width:'+p2+'%;background:'+c2+'"></div></div><span class="bval" style="color:'+c2+'">'+p2+'%</span></div>';}).join('')
+  +'</div></div>'
+
+  +'<div class="sum-card fin"><div class="sum-card-h"><span class="sum-card-t">📋 Story Breakdown</span></div>'
+  +'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">'
+  +'<thead><tr style="background:var(--p1);border-bottom:1px solid var(--w2)">'
+  +'<th style="padding:7px 11px;text-align:left;font-family:var(--mono);font-size:8px;color:var(--tx3);text-transform:uppercase">Story</th>'
+  +'<th style="padding:7px 11px;font-family:var(--mono);font-size:8px;color:var(--tx3);text-transform:uppercase">State</th>'
+  +'<th style="padding:7px 11px;text-align:center;font-family:var(--mono);font-size:8px;color:var(--tx3)">TCs</th>'
+  +'<th style="padding:7px 11px;text-align:center;font-family:var(--mono);font-size:8px;color:var(--tx3)">Pass</th>'
+  +'<th style="padding:7px 11px;text-align:center;font-family:var(--mono);font-size:8px;color:var(--tx3)">Fail</th>'
+  +'<th style="padding:7px 11px;text-align:center;font-family:var(--mono);font-size:8px;color:var(--tx3)">Defects</th>'
+  +'<th style="padding:7px 11px;text-align:center;font-family:var(--mono);font-size:8px;color:var(--tx3)">Cov%</th>'
+  +'</tr></thead><tbody>'
+  +sts.map(function(s){var cc=s.coverage>=80?'var(--g)':s.coverage>=50?'var(--o)':'var(--r)';var sc=s.state==='Done'?'pass':s.state==='Testing'?'inprogress':'skip';return'<tr style="border-bottom:1px solid var(--w1)"><td style="padding:7px 11px"><span class="sid">'+s.id+'</span> <span style="font-size:11px;color:var(--tx2)">'+esc(s.title)+'</span></td><td style="padding:7px 11px"><span class="sbadge '+sc+'" style="font-size:7px"><span class="sdot"></span>'+s.state+'</span></td><td style="text-align:center;padding:7px 11px;font-family:var(--mono);font-size:10px;color:var(--tx2)">'+(s.tcs||[]).length+'</td><td style="text-align:center;padding:7px;font-family:var(--mono);font-size:10px;color:var(--g)">'+(s.passCount||0)+'</td><td style="text-align:center;padding:7px;font-family:var(--mono);font-size:10px;color:var(--r)">'+(s.failCount||0)+'</td><td style="text-align:center;padding:7px;font-family:var(--mono);font-size:10px;color:var(--o)">'+(s.defs||[]).length+'</td><td style="text-align:center;padding:7px;font-family:var(--mono);font-size:10px;font-weight:700;color:'+cc+'">'+s.coverage+'%</td></tr>';}).join('')
+  +'</tbody></table></div></div>';
+}
+
+/* ══════════════════════════════════════════
+   CSV EXPORT
+══════════════════════════════════════════ */
+function downloadCSV(){
+  var lines=[],now=new Date().toISOString().slice(0,19).replace('T',' ');
+  lines.push('ADO Traceability Matrix — Summary Report');
+  lines.push('Generated,'+q(now));
+  lines.push('Organization,'+q(S.org));lines.push('Project,'+q(S.project));
+  lines.push('Team,'+q(S.team));lines.push('Area Path,'+q(S.area));
+  lines.push('Release,'+q(S.relName));lines.push('');
+  // KPIs
+  var pass=S.fTCs.filter(function(t){return t.status==='pass';}).length;
+  var tot=S.fTCs.length||1;
+  lines.push('=== KPI SUMMARY ===');
+  lines.push('Metric,Value');
+  lines.push('Total Stories,'+S.fStories.length);lines.push('Total Test Cases,'+S.fTCs.length);
+  lines.push('Passed,'+pass);lines.push('Failed,'+S.fTCs.filter(function(t){return t.status==='fail';}).length);
+  lines.push('Skipped,'+S.fTCs.filter(function(t){return t.status==='skip';}).length);
+  lines.push('Blocked,'+S.fTCs.filter(function(t){return t.status==='block';}).length);
+  lines.push('Pass Rate (%),'+Math.round(pass/tot*100));
+  lines.push('Total Defects,'+S.fDefects.length);
+  lines.push('Critical Defects,'+S.fDefects.filter(function(d){return d.sev==='crit';}).length);
+  lines.push('Open Defects,'+S.fDefects.filter(function(d){return d.state!=='Resolved';}).length);lines.push('');
+  // Traceability
+  lines.push('=== TRACEABILITY MATRIX ===');
+  lines.push('Story ID,Title,Epic,Priority,State,Assignee,TC Count,Pass,Fail,Skip,Block,Not Run,Coverage (%),Defect Count,Defect IDs,TC IDs');
+  S.fStories.forEach(function(s){
+    var tAll=(s.tcs||[]).map(function(id){return S.tcs.find(function(t){return t.id===id;});}).filter(Boolean);
+    var p=tAll.filter(function(t){return t.status==='pass';}).length,f=tAll.filter(function(t){return t.status==='fail';}).length;
+    var sk=tAll.filter(function(t){return t.status==='skip';}).length,bl=tAll.filter(function(t){return t.status==='block';}).length;
+    var nr=tAll.filter(function(t){return t.status==='notrun'||t.status==='inprogress';}).length;
+    lines.push([s.id,q(s.title),q(s.epic||''),s.pri,s.state,q(s.who||''),(s.tcs||[]).length,p,f,sk,bl,nr,s.coverage||(tAll.length?Math.round(p/tAll.length*100):0),(s.defs||[]).length,q((s.defs||[]).join('; ')),q((s.tcs||[]).join('; '))].join(','));
+  });
+  lines.push('');
+  // TCs
+  lines.push('=== TEST CASES ===');
+  lines.push('TC ID,Name,Type,Priority,Status,Assignee,Story ID,Environments,Duration,Linked Defects');
+  S.fTCs.forEach(function(t){lines.push([t.id,q(t.name||''),t.type||'Manual',t.pri||'P3',t.status||'notrun',q(t.who||''),t.storyId||'—',q((t.envs||[]).join('; ')),t.dur||'—',q((t.defs||[]).join('; '))].join(','));});
+  lines.push('');
+  // Defects
+  lines.push('=== DEFECTS ===');
+  lines.push('Defect ID,Title,Severity,Priority,State,Story,TC,Assignee,Environment,Created');
+  var sevL={crit:'Critical',high:'High',med:'Medium',low:'Low'};
+  S.fDefects.forEach(function(d){lines.push([d.id,q(d.title||''),sevL[d.sev]||d.sev,d.pri||'P3',d.state||'Active',d.story||'—',d.tc||'—',q(d.who||''),d.env||'—',d.created||'—'].join(','));});
+  lines.push('');
+  // Epic breakdown
+  lines.push('=== EPIC BREAKDOWN ===');lines.push('Epic,Stories,Total TCs,Pass,Fail,Pass Rate (%)');
+  var em={};S.fStories.forEach(function(s){var e=s.epic||'Other';if(!em[e])em[e]={stories:0,total:0,pass:0,fail:0};em[e].stories++;(s.tcs||[]).forEach(function(id){var t=S.tcs.find(function(x){return x.id===id;});if(!t)return;em[e].total++;if(t.status==='pass')em[e].pass++;else if(t.status==='fail')em[e].fail++;});});
+  Object.entries(em).forEach(function(e){var p2=e[1].total?Math.round(e[1].pass/e[1].total*100):0;lines.push([q(e[0]),e[1].stories,e[1].total,e[1].pass,e[1].fail,p2].join(','));});
+  lines.push('');
+  // Env
+  lines.push('=== ENVIRONMENT PASS RATE ===');lines.push('Environment,Total TCs,Pass,Fail,Pass Rate (%)');
+  var evm={};S.fTCs.forEach(function(t){(t.envs||['dev']).forEach(function(e){if(!evm[e])evm[e]={total:0,pass:0,fail:0};evm[e].total++;if(t.status==='pass')evm[e].pass++;else if(t.status==='fail')evm[e].fail++;});});
+  Object.entries(evm).forEach(function(e){var p2=e[1].total?Math.round(e[1].pass/e[1].total*100):0;lines.push([e[0].toUpperCase(),e[1].total,e[1].pass,e[1].fail,p2].join(','));});
+  var blob=new Blob([lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='ADO_Traceability_'+S.relName.replace(/[^a-z0-9]/gi,'_')+'_'+now.slice(0,10)+'.csv';
+  a.click();URL.revokeObjectURL(a.href);
+}
+
+/* ══════════════════════════════════════════
+   UI HELPERS
+══════════════════════════════════════════ */
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.tab-pane').forEach(function(p){p.classList.remove('active');});
+  btn.classList.add('active');G('pane-'+id).classList.add('active');
+}
+function togE(id,row){
+  var el=G(id);if(!el)return;
+  var open=el.classList.contains('open');
+  document.querySelectorAll('.exp-content.open').forEach(function(e){e.classList.remove('open');});
+  document.querySelectorAll('tbody tr.row-exp').forEach(function(r){r.classList.remove('row-exp');});
+  if(!open){el.classList.add('open');if(row)row.classList.add('row-exp');}
+}
+function quickF(f,btn){
+  S.qf=f;
+  document.querySelectorAll('.qpill').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');renderTrace();
+}
+function sevF(s,btn){
+  document.querySelectorAll('.sevbtn').forEach(function(b){b.classList.remove('active','cr','co');});
+  btn.classList.add('active');if(s==='crit')btn.classList.add('cr');else if(s==='high')btn.classList.add('co');
+  document.querySelectorAll('#defsTbody tr').forEach(function(tr){tr.style.display=(s==='all'||tr.dataset.sev===s)?'':'none';});
+}
+function doSort(k){
+  if(S.sortKey===k)S.sortDir*=-1;else{S.sortKey=k;S.sortDir=1;}
+  S.fStories.sort(function(a,b){
+    var va,vb;
+    if(k==='id'){va=a.id;vb=b.id;}else if(k==='cov'){va=a.coverage||0;vb=b.coverage||0;}else{va=a.state;vb=b.state;}
+    return va<vb?-S.sortDir:va>vb?S.sortDir:0;
+  });
+  renderTrace();
+}
+function resetAll(){
+  S.stories=[];S.tcs=[];S.defects=[];S.fStories=[];S.fTCs=[];S.fDefects=[];S.connected=false;S.demo=false;
+  G('kpiStrip').className='kpi-strip';G('tabBar').className='tab-bar';
+  ['trace','tcs','defs'].forEach(function(id){G('em'+id.charAt(0).toUpperCase()+id.slice(1)).style.display='';G(id+'Wrap').style.display='none';});
+  G('emSum').style.display='';G('sumWrap').style.display='none';
+  G('emTrace').style.display='';G('traceWrap').style.display='none';
+  G('emTCs').style.display='';G('tcsWrap').style.display='none';
+  G('emDefs').style.display='';G('defsWrap').style.display='none';
+  var rc=G('racCard');if(rc){rc.className='fb-rel-card';};var cb=G('connBox');if(cb)cb.style.display='none';
+  G('tbRelBadge').style.display='none';G('tbSprintBadge').style.display='none';
+  setLed('');G('connTxt').textContent='Not connected';
+  G('btnPull').disabled=true;G('btnCsv').disabled=true;
+  G('dashTitle').textContent='ADO Test Traceability Dashboard';
+  resetSelect('selRelease',true,'— connect ADO first —');
+  resetSelect('selStory',true,'All Stories');
+  resetSelect('selTC',true,'All Test Cases');
+  resetSelect('selDef',true,'All Defects');
+  // Project stays fixed as TaxProf — just reset team/area
+  // selTeam is hidden stub; selArea is a text input — leave value intact
+  S.team='TaxProf Team';
+  showProg(false);
+}
+function markStep(p,t,a){
+  G('step1').className='fstep'+(p?' done':' active');
+  G('step2').className='fstep'+(t?' done':p?' active':'');
+  G('step3').className='fstep'+(a?' done':t?' active':'');
+  G('step4').className='fstep'+(a?' active':'');
+}
+function markFilterSteps(){G('step1').className='fstep active';}
+function setLed(s){G('cled').className='cled '+(s==='ok'?'ok':s==='busy'?'busy':s==='err'?'err':'');}
+function showBox(t,m){var b=G('connBox');if(!b)return;b.className='conn-box '+t;b.textContent=m;b.style.display='block';}
+function showProg(show,pct,lbl){
+  G('progRow').style.display=show?'block':'none';
+  if(show&&pct!==undefined)setProg(pct,lbl);
+}
+function setProg(pct,lbl){G('progFill').style.width=pct+'%';G('progPct').textContent=pct+'%';if(lbl)G('progLbl').textContent=lbl;}
+function show(id,v){G(id).style.display=v?'block':'none';}
+function togglePat(){var i=G('inPat');i.type=i.type==='password'?'text':'password';}
+function populateSelect(id,opts,placeholder,withEmpty){
+  var el=G(id);if(!el||el.tagName!=='SELECT')return;el.innerHTML='';
+  if(placeholder||withEmpty){var o=document.createElement('option');o.value='';o.textContent=placeholder||(id==='selStory'?'All Stories':id==='selTC'?'All Test Cases':id==='selDef'?'All Defects':'— select —');el.appendChild(o);}
+  opts.forEach(function(opt){var o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;el.appendChild(o);});
+  el.disabled=false;
+}
+function resetSelect(id,disable,placeholder){
+  var el=G(id);if(!el)return;
+  if(el.tagName==='SELECT'){el.innerHTML='<option value="">'+placeholder+'</option>';if(disable)el.disabled=true;}
+  // text inputs: keep value, just update title hint
+}
+
+/* utils */
+function G(id){return document.getElementById(id);}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function enc(s){return encodeURIComponent(s||'');}
+function ini(n){return(n||'?').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);}
+function sColor(s){var c=['var(--a)','var(--g)','var(--s)','var(--r)','var(--v)','var(--o)'];var h=0;for(var i=0;i<(s||'').length;i++){h=(s.charCodeAt(i)+((h<<5)-h));}return c[Math.abs(h)%c.length];}
+function q(s){s=String(s||'');return(s.includes(',')||s.includes('"'))?'"'+s.replace(/"/g,'""')+'"':s;}
+function mapSt(s){return{Passed:'pass',Failed:'fail',Blocked:'block',Inconclusive:'skip','Not Applicable':'skip','Not Executed':'notrun',Active:'inprogress','In Progress':'inprogress'}[s]||'notrun';}
+function mapSev(s){return{'1 - Critical':'crit','2 - High':'high','3 - Medium':'med','4 - Low':'low'}[s]||'med';}
+function xName(a){if(!a)return'';if(typeof a==='string')return a;return a.displayName||a.uniqueName||'';}
+
+/* Tooltip */
+var tipEl=G('tip');
+document.addEventListener('mouseover',function(e){var t=e.target.closest('[data-tip]');if(t){tipEl.textContent=t.dataset.tip;tipEl.style.display='block';}});
+document.addEventListener('mouseout',function(e){if(!e.target.closest('[data-tip]'))tipEl.style.display='none';});
+document.addEventListener('mousemove',function(e){tipEl.style.left=(e.clientX+14)+'px';tipEl.style.top=(e.clientY-8)+'px';});
+
+function loadDemoDirectly(){
+  S.demo=true;S.connected=true;S.org=S.org||'demo';S.project='TaxProf';
+  S.area=S.area||'TaxProf\\surePrep\\components\\TaxCaddy\\surePrep-tcd-elite';
+  setLed('ok');G('connTxt').textContent='Demo Mode · ADO Simulated';
+  showBox('ok','✓ Demo Mode loaded — explore all features with sample TaxProf data.');
+  loadReleasesDemo();
+}
+
+/* Init on page load */
+window.addEventListener('DOMContentLoaded',function(){
+  var AREA_DEFAULT = 'TaxProf\\surePrep\\components\\TaxCaddy\\surePrep-tcd-elite';
+  S.project='TaxProf';
+  try{
+    var c=JSON.parse(localStorage.getItem('adoCfg2')||'{}');
+    S.org  = c.org  || 'tr-tax';
+    S.team = 'TaxProf Team';
+    S.area = c.area || AREA_DEFAULT;
+    G('inOrg').value = S.org;
+    // Set area path text input
+    var areaEl=G('selArea');
+    if(areaEl) areaEl.value = S.area;
+    markStep(true,true,true);
+    onOrgInput();
+    localStorage.setItem('adoCfg2', JSON.stringify({org:S.org, area:S.area}));
+  }catch(e){ console.warn('init error',e); }
+});
+</script>
+</body>
+</html>
